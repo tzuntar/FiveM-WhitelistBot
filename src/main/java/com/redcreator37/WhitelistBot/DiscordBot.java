@@ -2,6 +2,7 @@ package com.redcreator37.WhitelistBot;
 
 import com.redcreator37.WhitelistBot.Database.FiveMDb;
 import com.redcreator37.WhitelistBot.Database.GuildsDb;
+import com.redcreator37.WhitelistBot.Database.LocalDb;
 import com.redcreator37.WhitelistBot.Database.SharedDb;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
@@ -49,7 +50,7 @@ public class DiscordBot {
     /**
      * The path to the SQLite database file
      */
-    private static String localDbPath = "data.db";
+    private static final String localDbPath = "data.db";
 
     /**
      * The connection to the local SQLite database
@@ -59,7 +60,7 @@ public class DiscordBot {
     /**
      * The shared database the game uses
      */
-    public static Connection fiveMDb = null;
+    public static FiveMDb fiveMDb = null;
 
     /**
      * A map storing all supported commands
@@ -74,7 +75,7 @@ public class DiscordBot {
     /**
      * A list of all whitelisted players per guild
      */
-    static List<FiveMDb.Player> whitelisted;
+    static List<WhitelistedPlayer> whitelisted;
 
     /**
      * The current Guilds database instance
@@ -148,7 +149,7 @@ public class DiscordBot {
     private static void setUpDatabase() {
         boolean success = true, isNew = !new File(localDbPath).exists();
         try {
-            localDb = SharedDb.connect(localDbPath);
+            localDb = LocalDb.connect(localDbPath);
             guildsDb = new GuildsDb(localDb);
         } catch (SQLException e) {
             System.err.println("Error: " + e.getMessage());
@@ -156,7 +157,7 @@ public class DiscordBot {
 
         if (isNew) // create a new database
             try {
-                SharedDb.createDatabaseTables(localDb);
+                LocalDb.createDatabaseTables(localDb);
                 System.out.println("Created an empty database");
             } catch (SQLException e) {
                 System.err.println("Error while creating the database:" + e.getMessage());
@@ -166,7 +167,7 @@ public class DiscordBot {
         try {
             guilds = guildsDb.getGuilds();
             // todo: use local storage
-            whitelisted = FiveMDb.getWhitelistedPlayers(fiveMDb);
+            whitelisted = fiveMDb.getWhitelistedPlayers();
             System.out.println("Database loaded successfully");
         } catch (SQLException e) {
             System.err.println("Error while reading from the database: " + e.getMessage());
@@ -192,7 +193,7 @@ public class DiscordBot {
         }
 
         try {
-            fiveMDb = FiveMDb.connect(args[1], args[2], password);
+            fiveMDb = new FiveMDb(SharedDb.connect(args[1], args[2], password));
         } catch (SQLException e) {
             System.err.println("Unable to establish the database connection: " + e.getMessage());
         }

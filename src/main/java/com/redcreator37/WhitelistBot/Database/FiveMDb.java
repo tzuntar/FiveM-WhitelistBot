@@ -1,6 +1,6 @@
 package com.redcreator37.WhitelistBot.Database;
 
-import com.mysql.cj.jdbc.MysqlDataSource;
+import com.redcreator37.WhitelistBot.WhitelistedPlayer;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,27 +12,19 @@ import java.util.List;
 
 public class FiveMDb {
 
-    public static Connection connect(String server, String username, String password) throws SQLException {
-        MysqlDataSource dataSource = new MysqlDataSource();
-        dataSource.setUser(username);
-        dataSource.setPassword(password);
-        dataSource.setServerName(server);
-        dataSource.setDatabaseName("essentialmode");
-        Connection con = dataSource.getConnection();
-        con.setAutoCommit(true);
-        return con;
-    }
+    /**
+     * The SQLite database connection to use for all database-related
+     * operations
+     */
+    private final Connection con;
 
-    public static class Player {
-        private final String identifier;
-
-        public Player(String identifier) {
-            this.identifier = identifier;
-        }
-
-        public String getIdentifier() {
-            return identifier;
-        }
+    /**
+     * Constructs a new FiveMDb instance
+     *
+     * @param connection the MySQL connection to use
+     */
+    public FiveMDb(Connection connection) {
+        this.con = connection;
     }
 
     /**
@@ -41,13 +33,13 @@ public class FiveMDb {
      * @return the list of whitelisted players
      * @throws SQLException on errors
      */
-    public static List<Player> getWhitelistedPlayers(Connection con) throws SQLException {
-        List<Player> players = new ArrayList<>();
+    public List<WhitelistedPlayer> getWhitelistedPlayers() throws SQLException {
+        List<WhitelistedPlayer> players = new ArrayList<>();
         Statement st = con.createStatement();
         st.closeOnCompletion();
         ResultSet set = st.executeQuery("SELECT * FROM whitelist");
         while (set.next())
-            players.add(new Player(set.getString("identifier")));
+            players.add(new WhitelistedPlayer(set.getString("identifier")));
         set.close();
         return players;
     }
@@ -58,7 +50,7 @@ public class FiveMDb {
      * @param player the player to whitelist
      * @throws SQLException on errors
      */
-    public static void whitelistPlayer(Connection con, Player player) throws SQLException {
+    public void whitelistPlayer(WhitelistedPlayer player) throws SQLException {
         PreparedStatement st = con.prepareStatement("INSERT INTO whitelist(identifier) VALUES(?)");
         st.closeOnCompletion();
         st.setString(1, player.getIdentifier());
@@ -71,7 +63,7 @@ public class FiveMDb {
      * @param player the player to remove
      * @throws SQLException on errors
      */
-    public static void removePlayer(Connection con, Player player) throws SQLException {
+    public void removePlayer(WhitelistedPlayer player) throws SQLException {
         String sql = "DELETE FROM whitelist WHERE identifier = ?;";
         PreparedStatement st = con.prepareStatement(sql);
         st.setString(1, player.getIdentifier());

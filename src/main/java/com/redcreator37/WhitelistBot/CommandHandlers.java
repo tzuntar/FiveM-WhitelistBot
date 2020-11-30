@@ -1,6 +1,5 @@
 package com.redcreator37.WhitelistBot;
 
-import com.redcreator37.WhitelistBot.Database.FiveMDb;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.channel.MessageChannel;
@@ -129,7 +128,7 @@ public class CommandHandlers {
 
     private static Optional<String> unlistPlayerDb(String playerId) {
         try {
-            FiveMDb.removePlayer(DiscordBot.fiveMDb, new FiveMDb.Player(playerId));
+            DiscordBot.fiveMDb.removePlayer(new WhitelistedPlayer(playerId));
         } catch (SQLException e) {
             return Optional.of(e.getMessage());
         }
@@ -138,7 +137,7 @@ public class CommandHandlers {
 
     private static Optional<String> whitelistPlayerDb(String playerId) {
         try {
-            FiveMDb.whitelistPlayer(DiscordBot.fiveMDb, new FiveMDb.Player(playerId));
+            DiscordBot.fiveMDb.whitelistPlayer(new WhitelistedPlayer(playerId));
         } catch (SQLException e) {
             return Optional.of(e.getMessage());
         }

@@ -1,13 +1,11 @@
 package com.redcreator37.WhitelistBot.Database;
 
+import com.mysql.cj.jdbc.MysqlDataSource;
+
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/**
- * Common database routines
- */
-public final class SharedDb {
+public class SharedDb {
 
     /**
      * Non-instantiable
@@ -16,35 +14,23 @@ public final class SharedDb {
     }
 
     /**
-     * Attempts to connect to the specified database
+     * Connects to the shared MySQL instance
      *
-     * @param database database path
-     * @return a valid JDBC database connection
+     * @param server   the address of the database server
+     * @param username the database username
+     * @param password the database password
+     * @return the database connection object on success
      * @throws SQLException on errors
      */
-    public static Connection connect(String database) throws SQLException {
-        Connection con = DriverManager.getConnection("jdbc:sqlite:" + database);
+    public static Connection connect(String server, String username, String password) throws SQLException {
+        MysqlDataSource dataSource = new MysqlDataSource();
+        dataSource.setUser(username);
+        dataSource.setPassword(password);
+        dataSource.setServerName(server);
+        dataSource.setDatabaseName("essentialmode");
+        Connection con = dataSource.getConnection();
         con.setAutoCommit(true);
         return con;
-    }
-
-    /**
-     * Creates possibly nonexistent database tables
-     *
-     * @param con database connection
-     * @throws SQLException on errors
-     */
-    public static void createDatabaseTables(Connection con) throws SQLException {
-        String guildsTable = "create table if not exists guilds(\n" +
-                "    id        integer not null\n" +
-                "        primary key autoincrement,\n" +
-                "    snowflake text,\n" +
-                "    joined    date,\n" +
-                "    rank      text);";
-        con.prepareStatement(guildsTable).execute();
-        String guildsTableUnique = "create unique index guilds_snowflake_uindex"
-                + " on guilds(snowflake);";
-        con.prepareStatement(guildsTableUnique).execute();
     }
 
 }

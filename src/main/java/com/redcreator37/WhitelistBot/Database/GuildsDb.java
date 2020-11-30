@@ -13,8 +13,17 @@ import java.util.List;
 
 public class GuildsDb {
 
+    /**
+     * The SQLite database connection to use for all database-related
+     * operations
+     */
     private final Connection con;
 
+    /**
+     * Constructs a new GuildsDb instance
+     *
+     * @param connection connection to the SQLite database to use
+     */
     public GuildsDb(Connection connection) {
         this.con = connection;
     }
