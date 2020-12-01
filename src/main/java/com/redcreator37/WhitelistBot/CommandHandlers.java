@@ -40,6 +40,10 @@ public class CommandHandlers {
         return !Pattern.matches("^steam:[a-zA-Z0-9]+$", id);
     }
 
+    private static Role findRole(Member member, String name) {
+        return member.getRoles().filter(role -> role.getName().equals(name)).blockFirst();
+    }
+
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
     static Mono<Void> listWhitelisted(MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
@@ -108,10 +112,6 @@ public class CommandHandlers {
             }
             spec.setTimestamp(Instant.now());
         })).block();
-    }
-
-    public Role findRole(Member member, String name) {
-        return member.getRoles().filter(role -> role.getName().equals(name)).blockFirst();
     }
 
     private static Optional<String> unlistPlayerDb(String playerId) {
