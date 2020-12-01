@@ -1,12 +1,14 @@
 package com.redcreator37.WhitelistBot;
 
-import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
 
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -34,20 +36,6 @@ public class CommandHandlers {
         return false;
     }
 
-    /**
-     * Returns the guild in which the message was created
-     *
-     * @param event the message create event that was caused
-     * @return the guild or an empty Optional if the guild was not
-     * found in the database
-     */
-    private static Optional<Guild> getGuildFromEvent(MessageCreateEvent event) {
-        Snowflake snowflake = event.getGuildId().orElse(null);
-        if (snowflake == null) return Optional.empty();
-        Guild g = Guild.guildBySnowflake(snowflake, DiscordBot.guilds);
-        return Optional.ofNullable(g);
-    }
-
     private static boolean checkIdInvalid(String id) {
         return !Pattern.matches("^steam:[a-zA-Z0-9]+$", id);
     }
@@ -58,9 +46,9 @@ public class CommandHandlers {
         assert channel != null;
         for (int i = 0; i < DiscordBot.whitelisted.size(); i++) {
             int perMessage = 20;
-            StringBuilder msg = new StringBuilder(perMessage * 35);
-            msg.append("**Registered players** `[").append((i + 2) / perMessage).append("/")
-                    .append(DiscordBot.whitelisted.size()).append("]`:\n");
+            String header = MessageFormat.format("**Registered players** `[{0}-{1}]`",
+                    (i + 2) / perMessage, DiscordBot.whitelisted.size());
+            StringBuilder msg = new StringBuilder(perMessage * 35).append(header);
             for (int j = 0; j < perMessage && i < DiscordBot.whitelisted.size(); j++) {
                 msg.append(DiscordBot.whitelisted.get(i).getIdentifier()).append("\n");
                 i++;
@@ -74,61 +62,62 @@ public class CommandHandlers {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
         if (checkCmdInvalid(cmd, channel)) return;
-        channel.createEmbed(spec -> event.getGuildId()
-                .flatMap(snowflake -> getGuildFromEvent(event))
-                .ifPresent(guild -> {
-                    if (checkIdInvalid(cmd.get(1))) {
-                        spec.setTitle("Invalid ID");
-                        spec.setColor(Color.ORANGE);
-                        spec.addField("Entered ID", cmd.get(1), true);
-                        spec.setTimestamp(Instant.now());
-                        return;
-                    }
-                    Optional<String> fail = whitelistPlayerDb(cmd.get(1));
-                    if (!fail.isPresent()) {
-                        spec.setColor(Color.GREEN);
-                        spec.setTitle("Player whitelisted");
-                        spec.addField("Player ID", cmd.get(1), true);
-                    } else {
-                        spec.setColor(Color.RED);
-                        spec.setTitle("Whitelisting failed");
-                        spec.addField("Error", fail.get(), true);
-                    }
-                    spec.setTimestamp(Instant.now());
-                })).block();
+        channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
+            if (checkIdInvalid(cmd.get(1))) {
+                spec.setTitle("Invalid ID");
+                spec.setColor(Color.ORANGE);
+                spec.addField("Entered ID", cmd.get(1), true);
+                spec.setTimestamp(Instant.now());
+                return;
+            }
+            Optional<String> fail = whitelistPlayerDb(cmd.get(1));
+            if (!fail.isPresent()) {
+                spec.setColor(Color.GREEN);
+                spec.setTitle("Player whitelisted");
+                spec.addField("Player ID", cmd.get(1), true);
+            } else {
+                spec.setColor(Color.RED);
+                spec.setTitle("Whitelisting failed");
+                spec.addField("Error", fail.get(), true);
+            }
+            spec.setTimestamp(Instant.now());
+        })).block();
     }
 
     static void unlistPlayer(List<String> cmd, MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
         if (checkCmdInvalid(cmd, channel)) return;
-        channel.createEmbed(spec -> event.getGuildId()
-                .flatMap(snowflake -> getGuildFromEvent(event))
-                .ifPresent(guild -> {
-                    if (checkIdInvalid(cmd.get(1))) {
-                        spec.setTitle("Invalid ID");
-                        spec.setColor(Color.ORANGE);
-                        spec.addField("Entered ID", cmd.get(1), true);
-                        spec.setTimestamp(Instant.now());
-                        return;
-                    }
-                    Optional<String> fail = unlistPlayerDb(cmd.get(1));
-                    if (!fail.isPresent()) {
-                        spec.setColor(Color.YELLOW);
-                        spec.setTitle("Player unlisted");
-                        spec.addField("Player ID", cmd.get(1), true);
-                    } else {
-                        spec.setColor(Color.RED);
-                        spec.setTitle("Unlisting failed");
-                        spec.addField("Error", fail.get(), true);
-                    }
-                    spec.setTimestamp(Instant.now());
-                })).block();
+        channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
+            if (checkIdInvalid(cmd.get(1))) {
+                spec.setTitle("Invalid ID");
+                spec.setColor(Color.ORANGE);
+                spec.addField("Entered ID", cmd.get(1), true);
+                spec.setTimestamp(Instant.now());
+                return;
+            }
+            Optional<String> fail = unlistPlayerDb(cmd.get(1));
+            if (!fail.isPresent()) {
+                spec.setColor(Color.YELLOW);
+                spec.setTitle("Player unlisted");
+                spec.addField("Player ID", cmd.get(1), true);
+            } else {
+                spec.setColor(Color.RED);
+                spec.setTitle("Unlisting failed");
+                spec.addField("Error", fail.get(), true);
+            }
+            spec.setTimestamp(Instant.now());
+        })).block();
+    }
+
+    public Role findRole(Member member, String name) {
+        return member.getRoles().filter(role -> role.getName().equals(name)).blockFirst();
     }
 
     private static Optional<String> unlistPlayerDb(String playerId) {
         try {
             DiscordBot.fiveMDb.removePlayer(new WhitelistedPlayer(playerId));
+            DiscordBot.whitelisted.remove(new WhitelistedPlayer(playerId));
         } catch (SQLException e) {
             return Optional.of(e.getMessage());
         }
@@ -138,6 +127,7 @@ public class CommandHandlers {
     private static Optional<String> whitelistPlayerDb(String playerId) {
         try {
             DiscordBot.fiveMDb.whitelistPlayer(new WhitelistedPlayer(playerId));
+            DiscordBot.whitelisted.add(new WhitelistedPlayer(playerId));
         } catch (SQLException e) {
             return Optional.of(e.getMessage());
         }

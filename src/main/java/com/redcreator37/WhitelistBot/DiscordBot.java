@@ -107,40 +107,38 @@ public class DiscordBot {
                                 .next()))
                 .subscribe();
         client.getEventDispatcher().on(GuildCreateEvent.class)
-                .flatMap(e -> Mono.just(e.getGuild().getId())
-                        .filter(snowflake -> {
-                            Guild g = Guild.guildBySnowflake(snowflake, guilds);
-                            if (g != null) return true;
+                .flatMap(e -> Mono.just(e.getGuild())
+                        .flatMap(guild -> {
                             String timeStamp = new SimpleDateFormat(dateFormat)
                                     .format(Calendar.getInstance().getTime());
-                            Guild newGuild = new Guild(0, snowflake,
+                            Guild newGuild = new Guild(0, guild.getId(),
                                     timeStamp, null, localDb);
                             guilds.add(newGuild);
                             try {
                                 guildsDb.addGuild(newGuild);
-                                System.out.println("Registered guild " + snowflake.asString()
-                                        + " to the database");
+                                System.out.println("Registered guild "
+                                        + guild.getId().asString() + " to the database");
                             } catch (SQLException ex) {
                                 System.err.println("Warning! Adding the guild failed: "
                                         + ex.getMessage());
                             }
-                            return true;
+                            return Mono.empty();
                         })).subscribe();
         client.getEventDispatcher().on(GuildDeleteEvent.class)
-                .filter(e -> {
-                    Guild g = Guild.guildBySnowflake(e.getGuildId(), guilds);
-                    if (g == null) return true;
-                    guilds.remove(g);
-                    try {
-                        guildsDb.removeGuild(g);
-                        System.out.println("Unregistered guild " + e.getGuildId().asString()
-                                + " from the database");
-                    } catch (SQLException ex) {
-                        System.err.println("Warning! Removing the guild failed: "
-                                + ex.getMessage());
-                    }
-                    return true;
-                }).subscribe();
+                .flatMap(e -> Mono.justOrEmpty(e.getGuild())
+                        .flatMap(guild -> Mono.just(Guild.guildBySnowflake(e.getGuildId(), guilds)))
+                        .flatMap(g -> {
+                            guilds.remove(g);
+                            try {
+                                guildsDb.removeGuild(g);
+                                System.out.println("Unregistered guild "
+                                        + g.getSnowflake().asString() + " from the database");
+                            } catch (SQLException ex) {
+                                System.err.println("Warning! Removing the guild failed: "
+                                        + ex.getMessage());
+                            }
+                            return Mono.empty();
+                        })).subscribe();
     }
 
     /**

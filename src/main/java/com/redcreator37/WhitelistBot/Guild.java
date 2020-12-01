@@ -78,8 +78,7 @@ public class Guild {
      */
     public static Guild guildBySnowflake(Snowflake snowflake, List<Guild> guilds) {
         return guilds.stream().filter(guild -> guild.getSnowflake()
-                .equals(snowflake))
-                .findAny().orElse(null);
+                .equals(snowflake)).findAny().orElse(null);
     }
 
 }
