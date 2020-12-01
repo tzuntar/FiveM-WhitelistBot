@@ -50,8 +50,9 @@ public class CommandHandlers {
         assert channel != null;
         for (int i = 0; i < DiscordBot.whitelisted.size(); i++) {
             int perMessage = 20;
+            int current = (i / perMessage) + 1;
             String header = MessageFormat.format("**Registered players** `[{0}-{1}]`",
-                    (i + 2) / perMessage, DiscordBot.whitelisted.size());
+                    current, current * perMessage);
             StringBuilder msg = new StringBuilder(perMessage * 35).append(header);
             for (int j = 0; j < perMessage && i < DiscordBot.whitelisted.size(); j++) {
                 msg.append(DiscordBot.whitelisted.get(i).getIdentifier()).append("\n");
