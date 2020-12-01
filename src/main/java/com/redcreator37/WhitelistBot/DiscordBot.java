@@ -103,8 +103,7 @@ public class DiscordBot {
                 .flatMap(e -> Mono.just(e.getMessage().getContent())
                         .flatMap(content -> Flux.fromIterable(commands.entrySet())
                                 .filter(entry -> content.startsWith(cmdPrefix + entry.getKey()))
-                                .flatMap(entry -> entry.getValue().execute(e))
-                                .next()))
+                                .flatMap(entry -> entry.getValue().execute(e)).next()))
                 .subscribe();
         client.getEventDispatcher().on(GuildCreateEvent.class)
                 .flatMap(e -> Mono.just(e.getGuild())
@@ -113,9 +112,9 @@ public class DiscordBot {
                                     .format(Calendar.getInstance().getTime());
                             Guild newGuild = new Guild(0, guild.getId(),
                                     timeStamp, null, localDb);
-                            guilds.add(newGuild);
                             try {
                                 guildsDb.addGuild(newGuild);
+                                guilds.add(newGuild);
                                 System.out.println("Registered guild "
                                         + guild.getId().asString() + " to the database");
                             } catch (SQLException ex) {
@@ -128,9 +127,9 @@ public class DiscordBot {
                 .flatMap(e -> Mono.justOrEmpty(e.getGuild())
                         .flatMap(guild -> Mono.just(Guild.guildBySnowflake(e.getGuildId(), guilds)))
                         .flatMap(g -> {
-                            guilds.remove(g);
                             try {
                                 guildsDb.removeGuild(g);
+                                guilds.remove(g);
                                 System.out.println("Unregistered guild "
                                         + g.getSnowflake().asString() + " from the database");
                             } catch (SQLException ex) {
