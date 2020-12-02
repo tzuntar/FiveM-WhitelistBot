@@ -96,6 +96,42 @@ public class DiscordBot {
     }
 
     /**
+     * Adds this guild to the database
+     *
+     * @param guild the guild to add
+     * @return the status message
+     */
+    private static Mono<String> addGuild(Guild guild) {
+        try {
+            guildsDb.addGuild(guild);
+            guilds.add(guild);
+            return Mono.just("Registered guild "
+                    + guild.getSnowflake().asString() + " to the database");
+        } catch (SQLException ex) {
+            return Mono.just("Warning! Adding the guild failed: "
+                    + ex.getMessage());
+        }
+    }
+
+    /**
+     * Removes this guild from the database
+     *
+     * @param guild the guild to remove
+     * @return the status message
+     */
+    private static Mono<String> removeGuild(Guild guild) {
+        try {
+            guildsDb.removeGuild(guild);
+            guilds.remove(guild);
+            return Mono.just("Unregistered guild "
+                    + guild.getSnowflake().asString() + " from the database");
+        } catch (SQLException ex) {
+            return Mono.just("Warning! Removing the guild failed: "
+                    + ex.getMessage());
+        }
+    }
+
+    /**
      * Initializes and hooks up the event handlers
      */
     private static void setUpEventDispatcher() {
@@ -107,37 +143,15 @@ public class DiscordBot {
                 .subscribe();
         client.getEventDispatcher().on(GuildCreateEvent.class)
                 .flatMap(e -> Mono.just(e.getGuild())
-                        .flatMap(guild -> {
-                            String timeStamp = new SimpleDateFormat(dateFormat)
-                                    .format(Calendar.getInstance().getTime());
-                            Guild newGuild = new Guild(0, guild.getId(),
-                                    timeStamp, null, localDb);
-                            try {
-                                guildsDb.addGuild(newGuild);
-                                guilds.add(newGuild);
-                                System.out.println("Registered guild "
-                                        + guild.getId().asString() + " to the database");
-                            } catch (SQLException ex) {
-                                System.err.println("Warning! Adding the guild failed: "
-                                        + ex.getMessage());
-                            }
-                            return Mono.empty();
-                        })).subscribe();
+                        .flatMap(guild -> Mono.just(new Guild(0, guild.getId(),
+                                new SimpleDateFormat(dateFormat).format(Calendar.getInstance()
+                                        .getTime()), null, localDb)))
+                        .flatMap(DiscordBot::addGuild))
+                .subscribe(System.out::println);
         client.getEventDispatcher().on(GuildDeleteEvent.class)
                 .flatMap(e -> Mono.justOrEmpty(e.getGuild())
                         .flatMap(guild -> Mono.just(Guild.guildBySnowflake(e.getGuildId(), guilds)))
-                        .flatMap(g -> {
-                            try {
-                                guildsDb.removeGuild(g);
-                                guilds.remove(g);
-                                System.out.println("Unregistered guild "
-                                        + g.getSnowflake().asString() + " from the database");
-                            } catch (SQLException ex) {
-                                System.err.println("Warning! Removing the guild failed: "
-                                        + ex.getMessage());
-                            }
-                            return Mono.empty();
-                        })).subscribe();
+                        .flatMap(DiscordBot::removeGuild)).subscribe(System.out::println);
     }
 
     /**
