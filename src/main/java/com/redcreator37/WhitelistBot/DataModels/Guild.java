@@ -3,6 +3,7 @@ package com.redcreator37.WhitelistBot.DataModels;
 import discord4j.common.util.Snowflake;
 
 import java.sql.Connection;
+import java.time.Instant;
 import java.util.Objects;
 
 /**
@@ -25,7 +26,7 @@ public class Guild {
      * The date when the bot has joined this guild in an ISO-8601
      * compliant format
      */
-    private final String joined;
+    private final Instant joined;
 
     /**
      * The role of the guild members required to alter the data for
@@ -44,7 +45,7 @@ public class Guild {
      *                  guild
      * @param db        the database connection
      */
-    public Guild(int id, Snowflake snowflake, String joined, String adminRole, Connection db) {
+    public Guild(int id, Snowflake snowflake, Instant joined, String adminRole, Connection db) {
         this.id = id;
         this.snowflake = snowflake;
         this.joined = joined;
@@ -59,7 +60,7 @@ public class Guild {
         return snowflake;
     }
 
-    public String getJoined() {
+    public Instant getJoined() {
         return joined;
     }
 
