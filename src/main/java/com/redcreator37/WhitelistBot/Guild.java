@@ -67,18 +67,4 @@ public class Guild {
         return adminRole;
     }
 
-    /**
-     * Returns the guild with this snowflake or <code>null</code> if
-     * such guild was not found in this list
-     *
-     * @param snowflake the snowflake id of the guild to look for
-     * @param guilds    the list of all registered guilds
-     * @return the matching Guild object or <code>null</code> if not
-     * found
-     */
-    public static Guild guildBySnowflake(Snowflake snowflake, List<Guild> guilds) {
-        return guilds.stream().filter(guild -> guild.getSnowflake()
-                .equals(snowflake)).findAny().orElse(null);
-    }
-
 }
