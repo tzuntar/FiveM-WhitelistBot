@@ -1,6 +1,6 @@
-package com.redcreator37.WhitelistBot.Database;
+package com.redcreator37.WhitelistBot.Database.GameHandling;
 
-import com.redcreator37.WhitelistBot.WhitelistedPlayer;
+import com.redcreator37.WhitelistBot.DataModels.WhitelistedPlayer;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

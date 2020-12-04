@@ -1,6 +1,6 @@
-package com.redcreator37.WhitelistBot.Database;
+package com.redcreator37.WhitelistBot.Database.BotHandling;
 
-import com.redcreator37.WhitelistBot.Guild;
+import com.redcreator37.WhitelistBot.DataModels.Guild;
 import discord4j.common.util.Snowflake;
 
 import java.sql.Connection;
