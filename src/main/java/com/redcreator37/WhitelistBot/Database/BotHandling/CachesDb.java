@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.Instant;
 import java.util.HashMap;
 
@@ -36,9 +35,7 @@ public class CachesDb {
      */
     public HashMap<Snowflake, CacheState> getCacheState() throws SQLException {
         HashMap<Snowflake, CacheState> states = new HashMap<>();
-        Statement st = con.createStatement();
-        st.closeOnCompletion();
-        ResultSet set = st.executeQuery("SELECT * FROM guilds");
+        ResultSet set = con.createStatement().executeQuery("select * from caches");
         while (set.next()) {
             Snowflake s = Snowflake.of(set.getString("guild_id"));
             Instant i = Instant.parse(set.getString("last_refresh"));

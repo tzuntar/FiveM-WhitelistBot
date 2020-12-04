@@ -21,7 +21,9 @@ public class SharedDb {
      * @param password the database password
      * @return the database connection object on success
      * @throws SQLException on errors
+     * @deprecated Use {@link SharedDbProvider} instead
      */
+    @Deprecated
     public static Connection connect(String server, String username, String password) throws SQLException {
         MysqlDataSource dataSource = new MysqlDataSource();
         dataSource.setUser(username);

@@ -6,7 +6,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,9 +34,7 @@ public class FiveMDb {
      */
     public List<WhitelistedPlayer> getWhitelistedPlayers() throws SQLException {
         List<WhitelistedPlayer> players = new ArrayList<>();
-        Statement st = con.createStatement();
-        st.closeOnCompletion();
-        ResultSet set = st.executeQuery("SELECT * FROM whitelist");
+        ResultSet set = con.createStatement().executeQuery("select * from whitelist");
         while (set.next())
             players.add(new WhitelistedPlayer(set.getString("identifier")));
         set.close();
