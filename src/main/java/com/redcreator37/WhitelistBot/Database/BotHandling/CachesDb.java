@@ -22,10 +22,10 @@ public class CachesDb {
     /**
      * Constructs a new CachesDb instance
      *
-     * @param connection connection to the SQLite database to use
+     * @param con connection to the SQLite database to use
      */
-    public CachesDb(Connection connection) {
-        this.con = connection;
+    public CachesDb(Connection con) {
+        this.con = con;
     }
 
     /**

@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.HashMap;
 
 public class GuildsDb {
@@ -21,10 +22,10 @@ public class GuildsDb {
     /**
      * Constructs a new GuildsDb instance
      *
-     * @param connection connection to the SQLite database to use
+     * @param con connection to the SQLite database to use
      */
-    public GuildsDb(Connection connection) {
-        this.con = connection;
+    public GuildsDb(Connection con) {
+        this.con = con;
     }
 
     /**
@@ -41,7 +42,7 @@ public class GuildsDb {
         while (set.next()) {
             Snowflake s = Snowflake.of(set.getString("snowflake"));
             Guild guild = new Guild(set.getInt("id"), s,
-                    set.getString("joined"),
+                    Instant.parse(set.getString("joined")),
                     set.getString("admin_role"), con);
             guilds.put(s, guild);
         }
@@ -60,7 +61,7 @@ public class GuildsDb {
                 + " guilds(snowflake, joined, admin_role) VALUES(?, ?, ?)");
         st.closeOnCompletion();
         st.setString(1, guild.getSnowflake().asString());
-        st.setString(2, guild.getJoined());
+        st.setString(2, guild.getJoined().toString());
         st.setString(3, guild.getAdminRole());
         st.executeUpdate();
     }

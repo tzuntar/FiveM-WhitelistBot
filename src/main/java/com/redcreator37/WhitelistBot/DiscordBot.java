@@ -2,9 +2,9 @@ package com.redcreator37.WhitelistBot;
 
 import com.redcreator37.WhitelistBot.DataModels.Guild;
 import com.redcreator37.WhitelistBot.DataModels.WhitelistedPlayer;
-import com.redcreator37.WhitelistBot.Database.GameHandling.FiveMDb;
 import com.redcreator37.WhitelistBot.Database.BotHandling.GuildsDb;
 import com.redcreator37.WhitelistBot.Database.BotHandling.LocalDb;
+import com.redcreator37.WhitelistBot.Database.GameHandling.FiveMDb;
 import com.redcreator37.WhitelistBot.Database.GameHandling.SharedDb;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClientBuilder;
@@ -18,9 +18,8 @@ import reactor.core.publisher.Mono;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,12 +36,6 @@ public class DiscordBot {
      * The prefix with which the command can be executed
      */
     private static final char cmdPrefix = '%';
-
-    /**
-     * The ISO 8601-compliant date format used for storing dates
-     * in the database
-     */
-    public static final String dateFormat = "yyyy-MM-dd";
 
     /**
      * The currently used gateway client
@@ -146,8 +139,7 @@ public class DiscordBot {
         client.getEventDispatcher().on(GuildCreateEvent.class)
                 .flatMap(e -> Mono.just(e.getGuild())
                         .flatMap(guild -> Mono.just(new Guild(0, guild.getId(),
-                                new SimpleDateFormat(dateFormat).format(Calendar.getInstance()
-                                        .getTime()), null, localDb)))
+                                Instant.now(), null, localDb)))
                         .flatMap(DiscordBot::addGuild))
                 .subscribe(System.out::println);
         client.getEventDispatcher().on(GuildDeleteEvent.class)
