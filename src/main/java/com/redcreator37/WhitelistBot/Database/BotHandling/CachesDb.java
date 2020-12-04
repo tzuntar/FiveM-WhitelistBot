@@ -49,17 +49,35 @@ public class CachesDb {
     }
 
     /**
+     * Logs the first cache refresh for this guild in the database.
+     * Use only when caching data for this guild for the first time
+     * otherwise the unique constraint will fail!
+     *
+     * @param guildId the snowflake id of the guild to add
+     * @throws SQLException on errors
+     * @see CachesDb#logRefresh(CacheState)
+     */
+    public void logFirstRefresh(Snowflake guildId) throws SQLException {
+        PreparedStatement st = con.prepareStatement("INSERT INTO" +
+                " caches(guild_id, last_refresh) VALUES(?, ?);");
+        st.closeOnCompletion();
+        st.setString(1, guildId.asString());
+        st.setString(2, Instant.now().toString());
+        st.executeUpdate();
+    }
+
+    /**
      * Logs this cache refresh in the database
      *
      * @param state the new cache state
      * @throws SQLException on errors
      */
     public void logRefresh(CacheState state) throws SQLException {
-        PreparedStatement st = con.prepareStatement("INSERT INTO" +
-                " caches(guild_id, last_refresh) VALUES(?, ?);");
+        PreparedStatement st = con.prepareStatement("UPDATE caches SET"
+                + " last_refresh = ? WHERE guild_id = ?;");
         st.closeOnCompletion();
-        st.setString(1, state.getGuildId().asString());
-        st.setString(2, state.getLastRefresh().toString());
+        st.setString(1, state.getLastRefresh().toString());
+        st.setString(2, state.getGuildId().asString());
         st.executeUpdate();
     }
 
