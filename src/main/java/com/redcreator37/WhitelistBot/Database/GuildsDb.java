@@ -8,8 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 public class GuildsDb {
 
@@ -34,17 +33,17 @@ public class GuildsDb {
      * @return the list of all guilds
      * @throws SQLException on errors
      */
-    public List<Guild> getGuilds() throws SQLException {
-        List<Guild> guilds = new ArrayList<>();
+    public HashMap<Snowflake, Guild> getGuilds() throws SQLException {
+        HashMap<Snowflake, Guild> guilds = new HashMap<>();
         Statement st = con.createStatement();
         st.closeOnCompletion();
         ResultSet set = st.executeQuery("SELECT * FROM guilds");
         while (set.next()) {
-            Guild guild = new Guild(set.getInt("id"),
-                    Snowflake.of(set.getString("snowflake")),
+            Snowflake s = Snowflake.of(set.getString("snowflake"));
+            Guild guild = new Guild(set.getInt("id"), s,
                     set.getString("joined"),
                     set.getString("admin_role"), con);
-            guilds.add(guild);
+            guilds.put(s, guild);
         }
         set.close();
         return guilds;

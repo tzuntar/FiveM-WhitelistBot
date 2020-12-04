@@ -4,6 +4,7 @@ import com.redcreator37.WhitelistBot.Database.FiveMDb;
 import com.redcreator37.WhitelistBot.Database.GuildsDb;
 import com.redcreator37.WhitelistBot.Database.LocalDb;
 import com.redcreator37.WhitelistBot.Database.SharedDb;
+import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.guild.GuildCreateEvent;
@@ -16,7 +17,6 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -70,7 +70,7 @@ public class DiscordBot {
     /**
      * A list of all guilds
      */
-    static List<Guild> guilds = new ArrayList<>();
+    static HashMap<Snowflake, Guild> guilds = new HashMap<>();
 
     /**
      * A list of all whitelisted players per guild
@@ -104,7 +104,7 @@ public class DiscordBot {
     private static Mono<String> addGuild(Guild guild) {
         try {
             guildsDb.addGuild(guild);
-            guilds.add(guild);
+            guilds.put(guild.getSnowflake(), guild);
             return Mono.just("Registered guild "
                     + guild.getSnowflake().asString() + " to the database");
         } catch (SQLException ex) {
@@ -122,7 +122,7 @@ public class DiscordBot {
     private static Mono<String> removeGuild(Guild guild) {
         try {
             guildsDb.removeGuild(guild);
-            guilds.remove(guild);
+            guilds.remove(guild.getSnowflake());
             return Mono.just("Unregistered guild "
                     + guild.getSnowflake().asString() + " from the database");
         } catch (SQLException ex) {
@@ -150,7 +150,7 @@ public class DiscordBot {
                 .subscribe(System.out::println);
         client.getEventDispatcher().on(GuildDeleteEvent.class)
                 .flatMap(e -> Mono.justOrEmpty(e.getGuild())
-                        .flatMap(guild -> Mono.just(Guild.guildBySnowflake(e.getGuildId(), guilds)))
+                        .flatMap(guild -> Mono.just(guilds.get(e.getGuildId())))
                         .flatMap(DiscordBot::removeGuild)).subscribe(System.out::println);
     }
 
@@ -176,6 +176,7 @@ public class DiscordBot {
             }
 
         try {
+
             guilds = guildsDb.getGuilds();
             // todo: use local storage
             whitelisted = fiveMDb.getWhitelistedPlayers();
