@@ -1,4 +1,4 @@
-package com.redcreator37.WhitelistBot.Database;
+package com.redcreator37.WhitelistBot.Database.GameHandling;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
 

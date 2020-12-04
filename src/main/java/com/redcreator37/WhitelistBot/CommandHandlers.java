@@ -1,5 +1,6 @@
 package com.redcreator37.WhitelistBot;
 
+import com.redcreator37.WhitelistBot.DataModels.WhitelistedPlayer;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;

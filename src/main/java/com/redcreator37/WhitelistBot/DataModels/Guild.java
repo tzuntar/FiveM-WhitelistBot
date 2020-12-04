@@ -1,9 +1,9 @@
-package com.redcreator37.WhitelistBot;
+package com.redcreator37.WhitelistBot.DataModels;
 
 import discord4j.common.util.Snowflake;
 
 import java.sql.Connection;
-import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a Discord guild ("server")
@@ -67,4 +67,17 @@ public class Guild {
         return adminRole;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Guild)) return false;
+        Guild guild = (Guild) o;
+        return id == guild.id && snowflake.equals(guild.snowflake)
+                && joined.equals(guild.joined) && adminRole.equals(guild.adminRole);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, snowflake, joined, adminRole);
+    }
 }

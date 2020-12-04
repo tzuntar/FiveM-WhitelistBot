@@ -1,9 +1,11 @@
 package com.redcreator37.WhitelistBot;
 
-import com.redcreator37.WhitelistBot.Database.FiveMDb;
-import com.redcreator37.WhitelistBot.Database.GuildsDb;
-import com.redcreator37.WhitelistBot.Database.LocalDb;
-import com.redcreator37.WhitelistBot.Database.SharedDb;
+import com.redcreator37.WhitelistBot.DataModels.Guild;
+import com.redcreator37.WhitelistBot.DataModels.WhitelistedPlayer;
+import com.redcreator37.WhitelistBot.Database.GameHandling.FiveMDb;
+import com.redcreator37.WhitelistBot.Database.BotHandling.GuildsDb;
+import com.redcreator37.WhitelistBot.Database.BotHandling.LocalDb;
+import com.redcreator37.WhitelistBot.Database.GameHandling.SharedDb;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
@@ -176,7 +178,6 @@ public class DiscordBot {
             }
 
         try {
-
             guilds = guildsDb.getGuilds();
             // todo: use local storage
             whitelisted = fiveMDb.getWhitelistedPlayers();

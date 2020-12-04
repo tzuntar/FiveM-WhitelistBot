@@ -1,4 +1,4 @@
-package com.redcreator37.WhitelistBot.Database;
+package com.redcreator37.WhitelistBot.Database.BotHandling;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -35,6 +35,7 @@ public final class LocalDb {
      * @throws SQLException on errors
      */
     public static void createDatabaseTables(Connection con) throws SQLException {
+        // fixme: update to reflect recent changes to the database
         String guildsTable = "create table if not exists guilds(\n" +
                 "    id        integer not null\n" +
                 "        primary key autoincrement,\n" +
