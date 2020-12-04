@@ -1,15 +1,16 @@
 package com.redcreator37.WhitelistBot.DataModels;
 
+import com.redcreator37.WhitelistBot.Database.GameHandling.SharedDbProvider;
 import discord4j.common.util.Snowflake;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Objects;
 
 /**
  * Represents a Discord guild ("server")
  */
-@SuppressWarnings("unused")
 public class Guild {
 
     /**
@@ -35,6 +36,11 @@ public class Guild {
     private final String adminRole;
 
     /**
+     * The shared MySQL database with all game data
+     */
+    private final SharedDbProvider sharedDb;
+
+    /**
      * Constructs a new Guild instance
      *
      * @param id        the guild's database id
@@ -43,13 +49,25 @@ public class Guild {
      *                  format
      * @param adminRole the role required to edit the data for this
      *                  guild
-     * @param db        the database connection
+     * @param db        the database data provider
      */
-    public Guild(int id, Snowflake snowflake, Instant joined, String adminRole, Connection db) {
+    public Guild(int id, Snowflake snowflake, Instant joined, String adminRole, SharedDbProvider db) {
         this.id = id;
         this.snowflake = snowflake;
         this.joined = joined;
         this.adminRole = adminRole;
+        this.sharedDb = db;
+    }
+
+    /**
+     * Returns the connection to the shared game database, registered
+     * in this guild
+     *
+     * @return the open connection
+     * @throws SQLException on errors
+     */
+    public Connection getSharedDb() throws SQLException {
+        return sharedDb.connect();
     }
 
     public int getId() {
@@ -73,12 +91,16 @@ public class Guild {
         if (this == o) return true;
         if (!(o instanceof Guild)) return false;
         Guild guild = (Guild) o;
-        return id == guild.id && snowflake.equals(guild.snowflake)
-                && joined.equals(guild.joined) && adminRole.equals(guild.adminRole);
+        return id == guild.id &&
+                snowflake.equals(guild.snowflake) &&
+                joined.equals(guild.joined) &&
+                adminRole.equals(guild.adminRole) &&
+                sharedDb.equals(guild.sharedDb);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, snowflake, joined, adminRole);
+        return Objects.hash(id, snowflake, joined, adminRole, sharedDb);
     }
+
 }

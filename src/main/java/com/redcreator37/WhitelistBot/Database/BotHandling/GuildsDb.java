@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.Instant;
 import java.util.HashMap;
 
@@ -36,14 +35,13 @@ public class GuildsDb {
      */
     public HashMap<Snowflake, Guild> getGuilds() throws SQLException {
         HashMap<Snowflake, Guild> guilds = new HashMap<>();
-        Statement st = con.createStatement();
-        st.closeOnCompletion();
-        ResultSet set = st.executeQuery("SELECT * FROM guilds");
+        ResultSet set = con.createStatement().executeQuery("select * from guilds");
         while (set.next()) {
             Snowflake s = Snowflake.of(set.getString("snowflake"));
             Guild guild = new Guild(set.getInt("id"), s,
                     Instant.parse(set.getString("joined")),
-                    set.getString("admin_role"), con);
+                    set.getString("admin_role"),
+                    DbInstances.getByGuild(s, con));
             guilds.put(s, guild);
         }
         set.close();
