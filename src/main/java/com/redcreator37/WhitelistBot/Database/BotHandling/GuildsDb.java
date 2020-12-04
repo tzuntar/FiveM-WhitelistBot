@@ -56,9 +56,8 @@ public class GuildsDb {
      * @throws SQLException on errors
      */
     public void addGuild(Guild guild) throws SQLException {
-        PreparedStatement st = con
-                .prepareStatement("INSERT INTO guilds(snowflake, joined, admin_role)"
-                        + " VALUES(?, ?, ?)");
+        PreparedStatement st = con.prepareStatement("INSERT INTO"
+                + " guilds(snowflake, joined, admin_role) VALUES(?, ?, ?)");
         st.closeOnCompletion();
         st.setString(1, guild.getSnowflake().asString());
         st.setString(2, guild.getJoined());
@@ -73,9 +72,9 @@ public class GuildsDb {
      * @throws SQLException on errors
      */
     public void removeGuild(Guild guild) throws SQLException {
-        String sql = "DELETE FROM guilds WHERE snowflake = " + guild
-                .getSnowflake().asString() + ";";
-        PreparedStatement st = con.prepareStatement(sql);
+        PreparedStatement st = con.prepareStatement("DELETE FROM guilds"
+                + " WHERE snowflake = ?;");
+        st.setString(1, guild.getSnowflake().asString());
         st.executeUpdate();
     }
 
