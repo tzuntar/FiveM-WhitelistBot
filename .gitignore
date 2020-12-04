@@ -2,3 +2,6 @@ target/
 .idea/
 *.iml
 out/
+
+# for local debugging purposes
+local/

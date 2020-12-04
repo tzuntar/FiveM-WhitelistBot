@@ -28,10 +28,10 @@ public class Guild {
     private final String joined;
 
     /**
-     * The rank of the guild members required to alter the data for
+     * The role of the guild members required to alter the data for
      * this guild
      */
-    private final String rank;
+    private final String adminRole;
 
     /**
      * Constructs a new Guild instance
@@ -40,15 +40,15 @@ public class Guild {
      * @param snowflake the guild's snowflake
      * @param joined    the guild's join date in an ISO 8601-compliant
      *                  format
-     * @param rank      the rank required to edit the data for this
+     * @param adminRole the role required to edit the data for this
      *                  guild
      * @param db        the database connection
      */
-    public Guild(int id, Snowflake snowflake, String joined, String rank, Connection db) {
+    public Guild(int id, Snowflake snowflake, String joined, String adminRole, Connection db) {
         this.id = id;
         this.snowflake = snowflake;
         this.joined = joined;
-        this.rank = rank;
+        this.adminRole = adminRole;
     }
 
     public int getId() {
@@ -63,8 +63,8 @@ public class Guild {
         return joined;
     }
 
-    public String getRank() {
-        return rank;
+    public String getAdminRole() {
+        return adminRole;
     }
 
     /**

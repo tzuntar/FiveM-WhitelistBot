@@ -43,7 +43,7 @@ public class GuildsDb {
             Guild guild = new Guild(set.getInt("id"),
                     Snowflake.of(set.getString("snowflake")),
                     set.getString("joined"),
-                    set.getString("rank"), con);
+                    set.getString("admin_role"), con);
             guilds.add(guild);
         }
         set.close();
@@ -58,12 +58,12 @@ public class GuildsDb {
      */
     public void addGuild(Guild guild) throws SQLException {
         PreparedStatement st = con
-                .prepareStatement("INSERT INTO guilds(snowflake, joined, rank)"
+                .prepareStatement("INSERT INTO guilds(snowflake, joined, admin_role)"
                         + " VALUES(?, ?, ?)");
         st.closeOnCompletion();
         st.setString(1, guild.getSnowflake().asString());
         st.setString(2, guild.getJoined());
-        st.setString(3, guild.getRank());
+        st.setString(3, guild.getAdminRole());
         st.executeUpdate();
     }
 
