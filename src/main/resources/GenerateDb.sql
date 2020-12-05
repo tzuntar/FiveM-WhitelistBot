@@ -6,17 +6,17 @@ create table guilds
     joined     date    not null,
     admin_role text default 'admins' not null
 );
-
+--
 create table caches
 (
     guild_id     text not null
         references guilds (snowflake),
     last_refresh text not null
 );
-
+--
 create unique index caches_guild_id_uindex
     on caches (guild_id);
-
+--
 create table db_instances
 (
     guild_id text not null
@@ -26,9 +26,10 @@ create table db_instances
     password text default '' not null,
     database text not null
 );
-
+--
 create unique index db_instances_guild_id_uindex
     on db_instances (guild_id);
-
+--
 create unique index guilds_snowflake_uindex
     on guilds (snowflake);
+--

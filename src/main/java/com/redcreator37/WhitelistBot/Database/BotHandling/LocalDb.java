@@ -1,5 +1,10 @@
 package com.redcreator37.WhitelistBot.Database.BotHandling;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -8,12 +13,6 @@ import java.sql.SQLException;
  * Common database routines for the local datastore
  */
 public final class LocalDb {
-
-    /**
-     * Non-instantiable
-     */
-    private LocalDb() {
-    }
 
     /**
      * Attempts to connect to the specified database
@@ -34,18 +33,18 @@ public final class LocalDb {
      * @param con database connection
      * @throws SQLException on errors
      */
-    public static void createDatabaseTables(Connection con) throws SQLException {
-        // fixme: update to reflect recent changes to the database
-        String guildsTable = "create table if not exists guilds(\n" +
-                "    id        integer not null\n" +
-                "        primary key autoincrement,\n" +
-                "    snowflake text,\n" +
-                "    joined    date,\n" +
-                "    rank      text);";
-        con.prepareStatement(guildsTable).execute();
-        String guildsTableUnique = "create unique index guilds_snowflake_uindex"
-                + " on guilds(snowflake);";
-        con.prepareStatement(guildsTableUnique).execute();
+    public void createDatabaseTables(Connection con) throws SQLException, IOException {
+        FileInputStream fileInputStream = new FileInputStream(this.getClass()
+                .getResource("GenerateDb.sql").getFile());
+        BufferedReader br = new BufferedReader(new InputStreamReader(
+                new DataInputStream(fileInputStream)));
+        StringBuilder builder = new StringBuilder();
+        String line;
+        while ((line = br.readLine()) != null)
+            if (line.startsWith("--")) {
+                con.prepareStatement(builder.toString()).execute();
+                builder = new StringBuilder();
+            } else builder.append(line).append(" ");
     }
 
 }
