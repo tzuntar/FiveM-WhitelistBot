@@ -46,7 +46,7 @@ public class Guild {
     /**
      * The connection information for the shared database
      */
-    private final SharedDbProvider sharedDb;
+    private SharedDbProvider sharedDb;
 
     /**
      * The shared MySQL database with all game data
@@ -57,6 +57,23 @@ public class Guild {
      * A list of all whitelisted players in this guild
      */
     static List<WhitelistedPlayer> whitelisted;
+
+    /**
+     * Constructs a new Guild instance
+     *
+     * @param id        the guild's database id
+     * @param snowflake the guild's snowflake
+     * @param joined    the guild's join date in an ISO 8601-compliant
+     *                  format
+     * @param adminRole the role required to edit the data for this
+     *                  guild
+     */
+    public Guild(int id, Snowflake snowflake, Instant joined, String adminRole) {
+        this.id = id;
+        this.snowflake = snowflake;
+        this.joined = joined;
+        this.adminRole = adminRole;
+    }
 
     /**
      * Constructs a new Guild instance
@@ -178,10 +195,6 @@ public class Guild {
             return Optional.of(e.getMessage());
         }
         return Optional.empty();
-    }
-
-    public int getId() {
-        return id;
     }
 
     public Snowflake getSnowflake() {
