@@ -41,7 +41,7 @@ public class Guild {
      * The role of the guild members required to alter the data for
      * this guild
      */
-    private final String adminRole;
+    private String adminRole;
 
     /**
      * The connection information for the shared database
@@ -65,14 +65,11 @@ public class Guild {
      * @param snowflake the guild's snowflake
      * @param joined    the guild's join date in an ISO 8601-compliant
      *                  format
-     * @param adminRole the role required to edit the data for this
-     *                  guild
      */
-    public Guild(int id, Snowflake snowflake, Instant joined, String adminRole) {
+    public Guild(int id, Snowflake snowflake, Instant joined) {
         this.id = id;
         this.snowflake = snowflake;
         this.joined = joined;
-        this.adminRole = adminRole;
     }
 
     /**

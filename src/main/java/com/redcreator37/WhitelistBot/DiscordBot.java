@@ -129,8 +129,7 @@ public class DiscordBot {
                 .subscribe();
         client.getEventDispatcher().on(GuildCreateEvent.class)
                 .flatMap(e -> Mono.just(e.getGuild())
-                        .flatMap(guild -> Mono.just(new Guild(0, guild.getId(),
-                                Instant.now(), null)))
+                        .flatMap(guild -> Mono.just(new Guild(0, guild.getId(), Instant.now())))
                         .flatMap(DiscordBot::addGuild))
                 .subscribe(System.out::println);
         client.getEventDispatcher().on(GuildDeleteEvent.class)

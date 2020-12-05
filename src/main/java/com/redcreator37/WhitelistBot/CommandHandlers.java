@@ -47,7 +47,7 @@ public class CommandHandlers {
     }
 
     public static boolean checkNotAllowed(String roleName, MessageCreateEvent event) {
-        if (!event.getMember().isPresent()) return true;
+        if (roleName == null || !event.getMember().isPresent()) return true;
         boolean permission = findRole(event.getMember().get(), roleName) != null;
         if (!permission) {
             getMessageChannel(event).createEmbed(spec -> {
