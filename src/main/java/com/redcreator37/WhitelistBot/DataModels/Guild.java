@@ -1,12 +1,20 @@
 package com.redcreator37.WhitelistBot.DataModels;
 
+import com.redcreator37.WhitelistBot.CommandHandlers;
+import com.redcreator37.WhitelistBot.Database.GameHandling.FiveMDb;
 import com.redcreator37.WhitelistBot.Database.GameHandling.SharedDbProvider;
 import discord4j.common.util.Snowflake;
+import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.rest.util.Color;
+import reactor.core.publisher.Mono;
 
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a Discord guild ("server")
@@ -36,9 +44,19 @@ public class Guild {
     private final String adminRole;
 
     /**
-     * The shared MySQL database with all game data
+     * The connection information for the shared database
      */
     private final SharedDbProvider sharedDb;
+
+    /**
+     * The shared MySQL database with all game data
+     */
+    private FiveMDb fiveMDb;
+
+    /**
+     * A list of all whitelisted players in this guild
+     */
+    static List<WhitelistedPlayer> whitelisted;
 
     /**
      * Constructs a new Guild instance
@@ -60,14 +78,106 @@ public class Guild {
     }
 
     /**
-     * Returns the connection to the shared game database, registered
-     * in this guild
+     * Connects to the shared game database, registered in this guild
      *
-     * @return the open connection
      * @throws SQLException on errors
      */
-    public Connection getSharedDb() throws SQLException {
-        return sharedDb.connect();
+    public void connectSharedDb() throws SQLException {
+        fiveMDb = new FiveMDb(sharedDb.connect());
+    }
+
+    @SuppressWarnings("BlockingMethodInNonBlockingContext")
+    public Mono<Void> listWhitelisted(MessageCreateEvent event) {
+        if (CommandHandlers.checkNotAllowed(adminRole, event)) return Mono.empty();
+        MessageChannel channel = event.getMessage().getChannel().block();
+        assert channel != null;
+        for (int i = 0; i < whitelisted.size(); i++) {
+            int perMessage = 20;
+            int current = (i / perMessage) + 1;
+            String header = MessageFormat.format("**Registered players** `[{0}-{1}]`",
+                    current, current * perMessage);
+            StringBuilder msg = new StringBuilder(perMessage * 35).append(header);
+            for (int j = 0; j < perMessage && i < whitelisted.size(); j++) {
+                msg.append(whitelisted.get(i).getIdentifier()).append("\n");
+                i++;
+            }
+            channel.createMessage(msg.toString()).block();
+        }
+        return Mono.empty();
+    }
+
+    public void whitelistPlayer(List<String> cmd, MessageCreateEvent event) {
+        if (CommandHandlers.checkNotAllowed(adminRole, event)) return;
+        MessageChannel channel = event.getMessage().getChannel().block();
+        assert channel != null;
+        if (CommandHandlers.checkCmdInvalid(cmd, channel)) return;
+        channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
+            if (CommandHandlers.checkIdInvalid(cmd.get(1))) {
+                spec.setTitle("Invalid ID");
+                spec.setColor(Color.ORANGE);
+                spec.addField("Entered ID", cmd.get(1), true);
+                spec.setTimestamp(Instant.now());
+                return;
+            }
+            Optional<String> fail = whitelistPlayerDb(cmd.get(1));
+            if (!fail.isPresent()) {
+                spec.setColor(Color.GREEN);
+                spec.setTitle("Player whitelisted");
+                spec.addField("Player ID", cmd.get(1), true);
+            } else {
+                spec.setColor(Color.RED);
+                spec.setTitle("Whitelisting failed");
+                spec.addField("Error", fail.get(), true);
+            }
+            spec.setTimestamp(Instant.now());
+        })).block();
+    }
+
+    public void unlistPlayer(List<String> cmd, MessageCreateEvent event) {
+        if (CommandHandlers.checkNotAllowed(adminRole, event)) return;
+        MessageChannel channel = event.getMessage().getChannel().block();
+        assert channel != null;
+        if (CommandHandlers.checkCmdInvalid(cmd, channel)) return;
+        channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
+            if (CommandHandlers.checkIdInvalid(cmd.get(1))) {
+                spec.setTitle("Invalid ID");
+                spec.setColor(Color.ORANGE);
+                spec.addField("Entered ID", cmd.get(1), true);
+                spec.setTimestamp(Instant.now());
+                return;
+            }
+            Optional<String> fail = unlistPlayerDb(cmd.get(1));
+            if (!fail.isPresent()) {
+                spec.setColor(Color.YELLOW);
+                spec.setTitle("Player unlisted");
+                spec.addField("Player ID", cmd.get(1), true);
+            } else {
+                spec.setColor(Color.RED);
+                spec.setTitle("Unlisting failed");
+                spec.addField("Error", fail.get(), true);
+            }
+            spec.setTimestamp(Instant.now());
+        })).block();
+    }
+
+    private Optional<String> unlistPlayerDb(String playerId) {
+        try {
+            fiveMDb.removePlayer(new WhitelistedPlayer(playerId));
+            whitelisted.remove(new WhitelistedPlayer(playerId));
+        } catch (SQLException e) {
+            return Optional.of(e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> whitelistPlayerDb(String playerId) {
+        try {
+            fiveMDb.whitelistPlayer(new WhitelistedPlayer(playerId));
+            whitelisted.add(new WhitelistedPlayer(playerId));
+        } catch (SQLException e) {
+            return Optional.of(e.getMessage());
+        }
+        return Optional.empty();
     }
 
     public int getId() {

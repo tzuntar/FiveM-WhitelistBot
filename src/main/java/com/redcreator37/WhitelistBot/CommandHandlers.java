@@ -1,18 +1,13 @@
 package com.redcreator37.WhitelistBot;
 
-import com.redcreator37.WhitelistBot.DataModels.WhitelistedPlayer;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
-import reactor.core.publisher.Mono;
 
-import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -28,7 +23,7 @@ public class CommandHandlers {
      * @return <code>true</code> if the command is <strong>invalid</strong>,
      * otherwise <code>false</code>
      */
-    private static boolean checkCmdInvalid(List<String> entered, MessageChannel channel) {
+    public static boolean checkCmdInvalid(List<String> entered, MessageChannel channel) {
         assert channel != null;
         if (entered.size() < 2) {
             channel.createMessage("Which player?").block();
@@ -37,7 +32,7 @@ public class CommandHandlers {
         return false;
     }
 
-    private static boolean checkIdInvalid(String id) {
+    public static boolean checkIdInvalid(String id) {
         return !Pattern.matches("^steam:[a-zA-Z0-9]+$", id);
     }
 
@@ -45,95 +40,26 @@ public class CommandHandlers {
         return member.getRoles().filter(role -> role.getName().equals(name)).blockFirst();
     }
 
-    @SuppressWarnings("BlockingMethodInNonBlockingContext")
-    static Mono<Void> listWhitelisted(MessageCreateEvent event) {
+    public static MessageChannel getMessageChannel(MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
-        for (int i = 0; i < DiscordBot.whitelisted.size(); i++) {
-            int perMessage = 20;
-            int current = (i / perMessage) + 1;
-            String header = MessageFormat.format("**Registered players** `[{0}-{1}]`",
-                    current, current * perMessage);
-            StringBuilder msg = new StringBuilder(perMessage * 35).append(header);
-            for (int j = 0; j < perMessage && i < DiscordBot.whitelisted.size(); j++) {
-                msg.append(DiscordBot.whitelisted.get(i).getIdentifier()).append("\n");
-                i++;
-            }
-            channel.createMessage(msg.toString()).block();
-        }
-        return Mono.empty();
+        return channel;
     }
 
-    static void whitelistPlayer(List<String> cmd, MessageCreateEvent event) {
-        MessageChannel channel = event.getMessage().getChannel().block();
-        assert channel != null;
-        if (checkCmdInvalid(cmd, channel)) return;
-        channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
-            if (checkIdInvalid(cmd.get(1))) {
-                spec.setTitle("Invalid ID");
-                spec.setColor(Color.ORANGE);
-                spec.addField("Entered ID", cmd.get(1), true);
-                spec.setTimestamp(Instant.now());
-                return;
-            }
-            Optional<String> fail = whitelistPlayerDb(cmd.get(1));
-            if (!fail.isPresent()) {
-                spec.setColor(Color.GREEN);
-                spec.setTitle("Player whitelisted");
-                spec.addField("Player ID", cmd.get(1), true);
-            } else {
+    public static boolean checkNotAllowed(String roleName, MessageCreateEvent event) {
+        if (!event.getMember().isPresent()) return true;
+        boolean permission = findRole(event.getMember().get(), roleName) != null;
+        if (!permission) {
+            getMessageChannel(event).createEmbed(spec -> {
+                spec.setTitle("Permission denied");
                 spec.setColor(Color.RED);
-                spec.setTitle("Whitelisting failed");
-                spec.addField("Error", fail.get(), true);
-            }
-            spec.setTimestamp(Instant.now());
-        })).block();
-    }
-
-    static void unlistPlayer(List<String> cmd, MessageCreateEvent event) {
-        MessageChannel channel = event.getMessage().getChannel().block();
-        assert channel != null;
-        if (checkCmdInvalid(cmd, channel)) return;
-        channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
-            if (checkIdInvalid(cmd.get(1))) {
-                spec.setTitle("Invalid ID");
-                spec.setColor(Color.ORANGE);
-                spec.addField("Entered ID", cmd.get(1), true);
+                spec.setAuthor(event.getMember().get().getUsername(), null, null);
+                spec.addField("You do not have the permission\nto use this command",
+                        "Required role: " + roleName, false);
                 spec.setTimestamp(Instant.now());
-                return;
-            }
-            Optional<String> fail = unlistPlayerDb(cmd.get(1));
-            if (!fail.isPresent()) {
-                spec.setColor(Color.YELLOW);
-                spec.setTitle("Player unlisted");
-                spec.addField("Player ID", cmd.get(1), true);
-            } else {
-                spec.setColor(Color.RED);
-                spec.setTitle("Unlisting failed");
-                spec.addField("Error", fail.get(), true);
-            }
-            spec.setTimestamp(Instant.now());
-        })).block();
-    }
-
-    private static Optional<String> unlistPlayerDb(String playerId) {
-        try {
-            DiscordBot.fiveMDb.removePlayer(new WhitelistedPlayer(playerId));
-            DiscordBot.whitelisted.remove(new WhitelistedPlayer(playerId));
-        } catch (SQLException e) {
-            return Optional.of(e.getMessage());
+            }).block();
         }
-        return Optional.empty();
-    }
-
-    private static Optional<String> whitelistPlayerDb(String playerId) {
-        try {
-            DiscordBot.fiveMDb.whitelistPlayer(new WhitelistedPlayer(playerId));
-            DiscordBot.whitelisted.add(new WhitelistedPlayer(playerId));
-        } catch (SQLException e) {
-            return Optional.of(e.getMessage());
-        }
-        return Optional.empty();
+        return !permission;
     }
 
 }
