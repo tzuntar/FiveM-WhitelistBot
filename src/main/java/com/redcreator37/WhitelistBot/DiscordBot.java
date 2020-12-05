@@ -13,6 +13,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -152,9 +153,9 @@ public class DiscordBot {
 
         if (isNew) // create a new database
             try {
-                LocalDb.createDatabaseTables(localDb);
+                new LocalDb().createDatabaseTables(localDb);
                 System.out.println("Created an empty database");
-            } catch (SQLException e) {
+            } catch (SQLException | IOException e) {
                 System.err.println("Error while creating the database:" + e.getMessage());
                 success = false;
             }
