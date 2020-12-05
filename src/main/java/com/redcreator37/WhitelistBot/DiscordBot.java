@@ -1,11 +1,9 @@
 package com.redcreator37.WhitelistBot;
 
 import com.redcreator37.WhitelistBot.DataModels.Guild;
-import com.redcreator37.WhitelistBot.DataModels.WhitelistedPlayer;
 import com.redcreator37.WhitelistBot.Database.BotHandling.GuildsDb;
 import com.redcreator37.WhitelistBot.Database.BotHandling.LocalDb;
-import com.redcreator37.WhitelistBot.Database.GameHandling.FiveMDb;
-import com.redcreator37.WhitelistBot.Database.GameHandling.SharedDb;
+import com.redcreator37.WhitelistBot.Database.GameHandling.SharedDbProvider;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
@@ -21,7 +19,6 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,11 +50,6 @@ public class DiscordBot {
     private static Connection localDb = null;
 
     /**
-     * The shared database the game uses
-     */
-    public static FiveMDb fiveMDb = null;
-
-    /**
      * A map storing all supported commands
      */
     private static final Map<String, Command> commands = new HashMap<>();
@@ -68,11 +60,6 @@ public class DiscordBot {
     static HashMap<Snowflake, Guild> guilds = new HashMap<>();
 
     /**
-     * A list of all whitelisted players per guild
-     */
-    static List<WhitelistedPlayer> whitelisted;
-
-    /**
      * The current Guilds database instance
      */
     private static GuildsDb guildsDb = null;
@@ -80,14 +67,18 @@ public class DiscordBot {
     /**
      * Initializes the commands
      */
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static void setUpCommands() {
-        commands.put("list", e -> Mono.just(CommandHandlers.listWhitelisted(e)).then());
+        commands.put("list", e -> Mono.just(guilds.get(e.getGuildId().get())
+                .listWhitelisted(e)).then());
         commands.put("whitelist", e -> Mono.justOrEmpty(e.getMessage().getContent())
                 .map(cnt -> Arrays.asList(cnt.split(" ")))
-                .doOnNext(cmd -> CommandHandlers.whitelistPlayer(cmd, e)).then());
+                .doOnNext(cmd -> guilds.get(e.getGuildId().get())
+                        .whitelistPlayer(cmd, e)).then());
         commands.put("unlist", e -> Mono.justOrEmpty(e.getMessage().getContent())
                 .map(cnt -> Arrays.asList(cnt.split(" ")))
-                .doOnNext(cmd -> CommandHandlers.unlistPlayer(cmd, e)).then());
+                .doOnNext(cmd -> guilds.get(e.getGuildId().get())
+                        .unlistPlayer(cmd, e)).then());
     }
 
     /**
@@ -139,7 +130,10 @@ public class DiscordBot {
         client.getEventDispatcher().on(GuildCreateEvent.class)
                 .flatMap(e -> Mono.just(e.getGuild())
                         .flatMap(guild -> Mono.just(new Guild(0, guild.getId(),
-                                Instant.now(), null, localDb)))
+                                Instant.now(), null,
+                                // the following is the placeholder provider instance
+                                new SharedDbProvider(guild.getId(), "localhost",
+                                        "root", "", "essentialmode"))))
                         .flatMap(DiscordBot::addGuild))
                 .subscribe(System.out::println);
         client.getEventDispatcher().on(GuildDeleteEvent.class)
@@ -171,8 +165,6 @@ public class DiscordBot {
 
         try {
             guilds = guildsDb.getGuilds();
-            // todo: use local storage
-            whitelisted = fiveMDb.getWhitelistedPlayers();
             System.out.println("Database loaded successfully");
         } catch (SQLException e) {
             System.err.println("Error while reading from the database: " + e.getMessage());
@@ -189,19 +181,11 @@ public class DiscordBot {
      * Program entry point, starts the bot
      */
     public static void main(String[] args) {
-        String password = "";
-        if (args.length < 3) {
-            System.err.println("Syntax: bot_token mysql_url username password");
+        if (args.length < 1) {
+            System.err.println("Please provide the bot token!");
             System.exit(1);
-        } else if (args.length == 4) {  // to allow blank passwords
-            password = args[3];
         }
 
-        try {
-            fiveMDb = new FiveMDb(SharedDb.connect(args[1], args[2], password));
-        } catch (SQLException e) {
-            System.err.println("Unable to establish the database connection: " + e.getMessage());
-        }
         setUpCommands();
         setUpDatabase();
 
