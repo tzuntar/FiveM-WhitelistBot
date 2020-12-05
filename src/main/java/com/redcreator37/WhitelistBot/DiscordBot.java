@@ -3,7 +3,6 @@ package com.redcreator37.WhitelistBot;
 import com.redcreator37.WhitelistBot.DataModels.Guild;
 import com.redcreator37.WhitelistBot.Database.BotHandling.GuildsDb;
 import com.redcreator37.WhitelistBot.Database.BotHandling.LocalDb;
-import com.redcreator37.WhitelistBot.Database.GameHandling.SharedDbProvider;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
@@ -130,10 +129,7 @@ public class DiscordBot {
         client.getEventDispatcher().on(GuildCreateEvent.class)
                 .flatMap(e -> Mono.just(e.getGuild())
                         .flatMap(guild -> Mono.just(new Guild(0, guild.getId(),
-                                Instant.now(), null,
-                                // the following is the placeholder provider instance
-                                new SharedDbProvider(guild.getId(), "localhost",
-                                        "root", "", "essentialmode"))))
+                                Instant.now(), null)))
                         .flatMap(DiscordBot::addGuild))
                 .subscribe(System.out::println);
         client.getEventDispatcher().on(GuildDeleteEvent.class)
