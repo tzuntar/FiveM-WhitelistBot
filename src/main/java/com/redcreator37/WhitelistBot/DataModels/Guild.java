@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.redcreator37.WhitelistBot.Localizations.lc;
+
 /**
  * Represents exactly one Discord {@link discord4j.core.object.entity.Guild}
  * (called a "server" in the UI).
@@ -128,7 +130,7 @@ public class Guild {
         for (int i = 0; i < whitelisted.size(); i++) {
             int perMessage = 20;
             int current = (i / perMessage) + 1;
-            String header = MessageFormat.format("**Registered players** `[{0}-{1}]`",
+            String header = MessageFormat.format(lc("registered-players-format"),
                     current, current * perMessage);
             StringBuilder msg = new StringBuilder(perMessage * 35).append(header);
             for (int j = 0; j < perMessage && i < whitelisted.size(); j++) {
@@ -154,21 +156,21 @@ public class Guild {
         if (CommandHandlers.checkCmdInvalid(cmd, channel)) return;
         channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
             if (CommandHandlers.checkIdInvalid(cmd.get(1))) {
-                spec.setTitle("Invalid ID");
+                spec.setTitle(lc("invalid-id"));
                 spec.setColor(Color.ORANGE);
-                spec.addField("Entered ID", cmd.get(1), true);
+                spec.addField(lc("entered-id"), cmd.get(1), true);
                 spec.setTimestamp(Instant.now());
                 return;
             }
             Optional<String> fail = whitelistPlayerDb(cmd.get(1));
             if (!fail.isPresent()) {
                 spec.setColor(Color.GREEN);
-                spec.setTitle("Player whitelisted");
-                spec.addField("Player ID", cmd.get(1), true);
+                spec.setTitle(lc("player-whitelisted"));
+                spec.addField(lc("player-id"), cmd.get(1), true);
             } else {
                 spec.setColor(Color.RED);
-                spec.setTitle("Whitelisting failed");
-                spec.addField("Error", fail.get(), true);
+                spec.setTitle(lc("whitelist-failed"));
+                spec.addField(lc("error"), fail.get(), true);
             }
             spec.setTimestamp(Instant.now());
         })).block();
@@ -188,21 +190,21 @@ public class Guild {
         if (CommandHandlers.checkCmdInvalid(cmd, channel)) return;
         channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
             if (CommandHandlers.checkIdInvalid(cmd.get(1))) {
-                spec.setTitle("Invalid ID");
+                spec.setTitle(lc("invalid-id"));
                 spec.setColor(Color.ORANGE);
-                spec.addField("Entered ID", cmd.get(1), true);
+                spec.addField(lc("entered-id"), cmd.get(1), true);
                 spec.setTimestamp(Instant.now());
                 return;
             }
             Optional<String> fail = unlistPlayerDb(cmd.get(1));
             if (!fail.isPresent()) {
                 spec.setColor(Color.YELLOW);
-                spec.setTitle("Player unlisted");
-                spec.addField("Player ID", cmd.get(1), true);
+                spec.setTitle(lc("player-unlisted"));
+                spec.addField(lc("player-id"), cmd.get(1), true);
             } else {
                 spec.setColor(Color.RED);
-                spec.setTitle("Unlisting failed");
-                spec.addField("Error", fail.get(), true);
+                spec.setTitle(lc("unlist-failed"));
+                spec.addField(lc("error"), fail.get(), true);
             }
             spec.setTimestamp(Instant.now());
         })).block();

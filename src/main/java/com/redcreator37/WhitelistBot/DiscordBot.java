@@ -150,7 +150,7 @@ public class DiscordBot {
             localDb = LocalDb.connect("data.db");
             guildsDb = new GuildsDb(localDb);
         } catch (SQLException e) {
-            System.err.println(MessageFormat.format(lc("error"), e.getMessage()));
+            System.err.println(MessageFormat.format(lc("error-format"), e.getMessage()));
         }
 
         if (isNew) // create a new database
