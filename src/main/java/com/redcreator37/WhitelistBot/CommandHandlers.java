@@ -8,9 +8,12 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
 
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import static com.redcreator37.WhitelistBot.Localizations.lc;
 
 /**
  * Handler methods for common command-related routines
@@ -28,7 +31,7 @@ public class CommandHandlers {
     public static boolean checkCmdInvalid(List<String> entered, MessageChannel channel) {
         assert channel != null;
         if (entered.size() < 2) {
-            channel.createMessage("Which player?").block();
+            channel.createMessage(lc("which-player")).block();
             return true;
         }
         return false;
@@ -88,11 +91,11 @@ public class CommandHandlers {
         boolean permission = findRole(event.getMember().get(), roleName) != null;
         if (!permission) {
             getMessageChannel(event).createEmbed(spec -> {
-                spec.setTitle("Permission denied");
+                spec.setTitle(lc("permission-denied"));
                 spec.setColor(Color.RED);
                 spec.setAuthor(event.getMember().get().getUsername(), null, null);
-                spec.addField("You do not have the permission\nto use this command",
-                        "Required role: " + roleName, false);
+                spec.addField(lc("no-permission-to-use-command"),
+                        MessageFormat.format(lc("required-role"), roleName), false);
                 spec.setTimestamp(Instant.now());
             }).block();
         }
@@ -109,14 +112,12 @@ public class CommandHandlers {
     static void sendWelcomeMessage(GuildCreateEvent event) {
         event.getGuild().getOwner().flatMap(User::getPrivateChannel)
                 .flatMap(channel -> channel.createEmbed(spec -> {
-                    spec.setTitle("Hi there!");
+                    spec.setTitle(lc("hi-there"));
                     spec.setColor(Color.LIGHT_SEA_GREEN);
-                    spec.setDescription("You've received this message because you're"
-                            + " the owner of the server " + event.getGuild().getName());
-                    spec.addField("Finish the setup", "To finish the setup of "
-                            + "the bot, please run the commands `" + DiscordBot.cmdPrefix
-                            + "setadmin` and `" + DiscordBot.cmdPrefix + "connectdb`,"
-                            + " respectively.", false);
+                    spec.setDescription(MessageFormat.format(lc("received-message-owner"),
+                            event.getGuild().getName()));
+                    spec.addField(lc("finish-setup"), MessageFormat
+                            .format(lc("to-finish-setup-do"), DiscordBot.cmdPrefix), false);
                     spec.setTimestamp(Instant.now());
                 })).block();
     }
