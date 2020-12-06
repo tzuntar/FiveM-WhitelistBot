@@ -17,7 +17,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Represents a Discord guild ("server")
+ * Represents exactly one Discord {@link discord4j.core.object.entity.Guild}
+ * (called a "server" in the UI).
+ * <p>
+ * All data, required to connect to external databases successfully and
+ * transiently handle errors is handled by this class.
  */
 public class Guild {
 
@@ -32,21 +36,20 @@ public class Guild {
     private final Snowflake snowflake;
 
     /**
-     * The date when the bot has joined this guild in an ISO-8601
-     * compliant format
+     * The date when the bot has joined this guild
      */
     private final Instant joined;
 
     /**
-     * The role of the guild members required to alter the data for
-     * this guild
+     * The role of the guild members required to retrieve / alter the
+     * data for this guild
      */
     private String adminRole;
 
     /**
      * The connection information for the shared database
      */
-    private SharedDbProvider sharedDb;
+    private SharedDbProvider sharedDbProvider;
 
     /**
      * The shared MySQL database with all game data
@@ -56,10 +59,15 @@ public class Guild {
     /**
      * A list of all whitelisted players in this guild
      */
-    static List<WhitelistedPlayer> whitelisted;
+    private List<WhitelistedPlayer> whitelisted;
 
     /**
      * Constructs a new Guild instance
+     * <p>
+     * This constructor is meant to be used <i>exclusively</i> when
+     * registering new guilds, as it doesn't require additional data to
+     * be present yet. When possible, use the full constructor
+     * {@link Guild#Guild(int, Snowflake, Instant, String, SharedDbProvider)}.
      *
      * @param id        the guild's database id
      * @param snowflake the guild's snowflake
@@ -73,12 +81,15 @@ public class Guild {
     }
 
     /**
-     * Constructs a new Guild instance
+     * Constructs a new Guild instance.
+     * <p>
+     * Shared database connection and related fields (ex. the list of
+     * whitelisted players) are manually lazily-initialized using the
+     * {@link Guild#connectSharedDb()} method.
      *
      * @param id        the guild's database id
      * @param snowflake the guild's snowflake
-     * @param joined    the guild's join date in an ISO 8601-compliant
-     *                  format
+     * @param joined    the guild's join date
      * @param adminRole the role required to edit the data for this
      *                  guild
      * @param db        the database data provider
@@ -88,7 +99,7 @@ public class Guild {
         this.snowflake = snowflake;
         this.joined = joined;
         this.adminRole = adminRole;
-        this.sharedDb = db;
+        this.sharedDbProvider = db;
     }
 
     /**
@@ -97,9 +108,18 @@ public class Guild {
      * @throws SQLException on errors
      */
     public void connectSharedDb() throws SQLException {
-        fiveMDb = new FiveMDb(sharedDb.connect());
+        fiveMDb = new FiveMDb(sharedDbProvider.connect());
+        whitelisted = fiveMDb.getWhitelistedPlayers();
     }
 
+    /**
+     * Lists all whitelisted players for this guild using multiple
+     * messages
+     *
+     * @param event the {@link MessageCreateEvent} which occurred when
+     *              the calling message was sent
+     * @return An empty {@link Mono} call
+     */
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
     public Mono<Void> listWhitelisted(MessageCreateEvent event) {
         if (CommandHandlers.checkNotAllowed(adminRole, event)) return Mono.empty();
@@ -120,6 +140,14 @@ public class Guild {
         return Mono.empty();
     }
 
+    /**
+     * Whitelists the player in the game database whose name was
+     * specified in the message
+     *
+     * @param cmd   the list of parameters of the sent message
+     * @param event the {@link MessageCreateEvent} which occurred when
+     *              the message was sent
+     */
     public void whitelistPlayer(List<String> cmd, MessageCreateEvent event) {
         if (CommandHandlers.checkNotAllowed(adminRole, event)) return;
         MessageChannel channel = event.getMessage().getChannel().block();
@@ -147,6 +175,14 @@ public class Guild {
         })).block();
     }
 
+    /**
+     * Removes the player from the in-game whitelist.
+     * The player's data is retrieved by parsing the message
+     *
+     * @param cmd   the list of parameters of the sent message
+     * @param event the {@link MessageCreateEvent} which occurred when
+     *              the message was sent
+     */
     public void unlistPlayer(List<String> cmd, MessageCreateEvent event) {
         if (CommandHandlers.checkNotAllowed(adminRole, event)) return;
         MessageChannel channel = event.getMessage().getChannel().block();
@@ -174,20 +210,36 @@ public class Guild {
         })).block();
     }
 
-    private Optional<String> unlistPlayerDb(String playerId) {
+    /**
+     * Uses the connection to the in-game database to whitelist the
+     * player with this SteamID
+     *
+     * @param playerId the SteamID of the player to whitelist
+     * @return an empty {@link Optional} on success or the error
+     * message
+     */
+    private Optional<String> whitelistPlayerDb(String playerId) {
         try {
-            fiveMDb.removePlayer(new WhitelistedPlayer(playerId));
-            whitelisted.remove(new WhitelistedPlayer(playerId));
+            fiveMDb.whitelistPlayer(new WhitelistedPlayer(playerId));
+            whitelisted.add(new WhitelistedPlayer(playerId));
         } catch (SQLException e) {
             return Optional.of(e.getMessage());
         }
         return Optional.empty();
     }
 
-    private Optional<String> whitelistPlayerDb(String playerId) {
+    /**
+     * Uses the connection to the in-game database to remove the player
+     * from its whitelist
+     *
+     * @param playerId the SteamID of the player to un-whitelist
+     * @return an empty {@link Optional} on success or the error
+     * message
+     */
+    private Optional<String> unlistPlayerDb(String playerId) {
         try {
-            fiveMDb.whitelistPlayer(new WhitelistedPlayer(playerId));
-            whitelisted.add(new WhitelistedPlayer(playerId));
+            fiveMDb.removePlayer(new WhitelistedPlayer(playerId));
+            whitelisted.remove(new WhitelistedPlayer(playerId));
         } catch (SQLException e) {
             return Optional.of(e.getMessage());
         }
@@ -211,16 +263,15 @@ public class Guild {
         if (this == o) return true;
         if (!(o instanceof Guild)) return false;
         Guild guild = (Guild) o;
-        return id == guild.id &&
-                snowflake.equals(guild.snowflake) &&
-                joined.equals(guild.joined) &&
-                adminRole.equals(guild.adminRole) &&
-                sharedDb.equals(guild.sharedDb);
+        return id == guild.id && snowflake.equals(guild.snowflake)
+                && joined.equals(guild.joined) && Objects.equals(adminRole, guild.adminRole)
+                && Objects.equals(sharedDbProvider, guild.sharedDbProvider) && Objects.equals(fiveMDb, guild.fiveMDb)
+                && Objects.equals(whitelisted, guild.whitelisted);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, snowflake, joined, adminRole, sharedDb);
+        return Objects.hash(id, snowflake, joined, adminRole, sharedDbProvider, fiveMDb, whitelisted);
     }
 
 }
