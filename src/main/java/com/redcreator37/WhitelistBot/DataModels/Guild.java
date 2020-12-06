@@ -155,13 +155,7 @@ public class Guild {
         MessageChannel channel = CommandHandlers.getMessageChannel(event);
         if (CommandHandlers.checkCmdInvalid(cmd, channel)) return;
         channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
-            if (CommandHandlers.checkIdInvalid(cmd.get(1))) {
-                spec.setTitle(lc("invalid-id"));
-                spec.setColor(Color.ORANGE);
-                spec.addField(lc("entered-id"), cmd.get(1), true);
-                spec.setTimestamp(Instant.now());
-                return;
-            }
+            if (CommandHandlers.invalidPlayerIdEmbed(cmd.get(1), channel)) return;
             Optional<String> fail = whitelistPlayerDb(cmd.get(1));
             if (!fail.isPresent()) {
                 spec.setColor(Color.GREEN);
@@ -189,13 +183,7 @@ public class Guild {
         MessageChannel channel = CommandHandlers.getMessageChannel(event);
         if (CommandHandlers.checkCmdInvalid(cmd, channel)) return;
         channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
-            if (CommandHandlers.checkIdInvalid(cmd.get(1))) {
-                spec.setTitle(lc("invalid-id"));
-                spec.setColor(Color.ORANGE);
-                spec.addField(lc("entered-id"), cmd.get(1), true);
-                spec.setTimestamp(Instant.now());
-                return;
-            }
+            if (CommandHandlers.invalidPlayerIdEmbed(cmd.get(1), channel)) return;
             Optional<String> fail = unlistPlayerDb(cmd.get(1));
             if (!fail.isPresent()) {
                 spec.setColor(Color.YELLOW);
