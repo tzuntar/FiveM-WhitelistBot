@@ -34,6 +34,13 @@ public class CommandHandlers {
         return false;
     }
 
+    /**
+     * Checks whether this SteamID is not in the correct format
+     *
+     * @param id the SteamID to check
+     * @return <code>true</code> if the ID is invalid, <code>false</code>
+     * otherwise
+     */
     public static boolean checkIdInvalid(String id) {
         return !Pattern.matches("^steam:[a-zA-Z0-9]+$", id);
     }
@@ -107,8 +114,9 @@ public class CommandHandlers {
                     spec.setDescription("You've received this message because you're"
                             + " the owner of the server " + event.getGuild().getName());
                     spec.addField("Finish the setup", "To finish the setup of "
-                            + "the bot, please run the commands `" + DiscordBot.cmdPrefix + "setadmin` and `"
-                            + DiscordBot.cmdPrefix + "connectdb`, respectively.", false);
+                            + "the bot, please run the commands `" + DiscordBot.cmdPrefix
+                            + "setadmin` and `" + DiscordBot.cmdPrefix + "connectdb`,"
+                            + " respectively.", false);
                     spec.setTimestamp(Instant.now());
                 })).block();
     }

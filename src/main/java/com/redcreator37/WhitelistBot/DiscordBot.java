@@ -30,19 +30,15 @@ import java.util.Map;
 public class DiscordBot {
 
     /**
-     * The prefix with which the command can be executed
+     * The prefix to look for when parsing messages into commands
      */
     static final char cmdPrefix = '%';
 
     /**
-     * The currently used gateway client
+     * The currently used {@link GatewayDiscordClient} object when
+     * connecting to Discord's servers
      */
     private static GatewayDiscordClient client = null;
-
-    /**
-     * The path to the SQLite database file
-     */
-    private static final String localDbPath = "data.db";
 
     /**
      * The connection to the local SQLite database
@@ -50,22 +46,22 @@ public class DiscordBot {
     private static Connection localDb = null;
 
     /**
-     * A map storing all supported commands
+     * A {@link HashMap} holding all currently implemented commands
      */
     private static final Map<String, Command> commands = new HashMap<>();
 
     /**
-     * A list of all guilds
+     * A {@link HashMap} of all registered guilds
      */
     static HashMap<Snowflake, Guild> guilds = new HashMap<>();
 
     /**
-     * The current Guilds database instance
+     * The currently used local database support object
      */
     private static GuildsDb guildsDb = null;
 
     /**
-     * Initializes the commands
+     * Initializes the bot commands
      */
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static void setUpCommands() {
@@ -82,9 +78,12 @@ public class DiscordBot {
     }
 
     /**
-     * Adds this guild to the database
+     * Adds this {@link Guild} to the local database and sends its
+     * owner the welcome message
      *
-     * @param guild the guild to add
+     * @param guild the {@link Guild} to add
+     * @param event the {@link GuildCreateEvent} which occurred when the
+     *              guild was registered
      * @return the status message
      */
     private static Mono<String> addGuild(Guild guild, GuildCreateEvent event) {
@@ -101,9 +100,9 @@ public class DiscordBot {
     }
 
     /**
-     * Removes this guild from the database
+     * Removes this {@link Guild} from the local database
      *
-     * @param guild the guild to remove
+     * @param guild the {@link Guild} to remove
      * @return the status message
      */
     private static Mono<String> removeGuild(Guild guild) {
@@ -140,12 +139,12 @@ public class DiscordBot {
     }
 
     /**
-     * Sets up the database connection
+     * Sets up the local database connection
      */
     private static void setUpDatabase() {
-        boolean success = true, isNew = !new File(localDbPath).exists();
+        boolean success = true, isNew = !new File("data.db").exists();
         try {
-            localDb = LocalDb.connect(localDbPath);
+            localDb = LocalDb.connect("data.db");
             guildsDb = new GuildsDb(localDb);
         } catch (SQLException e) {
             System.err.println("Error: " + e.getMessage());
@@ -175,7 +174,8 @@ public class DiscordBot {
     }
 
     /**
-     * Program entry point, starts the bot
+     * Starts up the bot, loads the local database and connects to the
+     * Discord's API
      */
     public static void main(String[] args) {
         if (args.length < 1) {

@@ -2,9 +2,21 @@ package com.redcreator37.WhitelistBot.DataModels;
 
 import java.util.Objects;
 
+/**
+ * Represents a whitelisted player in the game database
+ */
 public class WhitelistedPlayer {
+
+    /**
+     * The identifier of the player (ie. their SteamID)
+     */
     private final String identifier;
 
+    /**
+     * Constructs a new WhitelistedPlayer instance
+     *
+     * @param identifier the identifier of the player (ie. their SteamID)
+     */
     public WhitelistedPlayer(String identifier) {
         this.identifier = identifier;
     }

@@ -4,14 +4,15 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import reactor.core.publisher.Mono;
 
 /**
- * A simple discord bot command
+ * Represents the bot's command
  */
 public interface Command {
 
     /**
-     * Executes the command triggered by this event
+     * Executes the command triggered by this {@link MessageCreateEvent}
      *
-     * @param event the preceding event
+     * @param event the preceding {@link MessageCreateEvent} which
+     *              occurred when the message was sent
      */
     Mono<Void> execute(MessageCreateEvent event);
 
