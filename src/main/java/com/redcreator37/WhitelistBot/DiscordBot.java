@@ -16,10 +16,13 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.redcreator37.WhitelistBot.Localizations.lc;
 
 /**
  * A Discord bot that aims to simplify server management for FiveM-based
@@ -91,11 +94,11 @@ public class DiscordBot {
             guildsDb.addGuild(guild);
             guilds.put(guild.getSnowflake(), guild);
             CommandHandlers.sendWelcomeMessage(event);
-            return Mono.just("Registered guild "
-                    + guild.getSnowflake().asString() + " to the database");
+            return Mono.just(MessageFormat.format(lc("registered-guild"),
+                    guild.getSnowflake().asString()));
         } catch (SQLException ex) {
-            return Mono.just("Warning! Adding the guild failed: "
-                    + ex.getMessage());
+            return Mono.just(MessageFormat.format(lc("warn-guild-add-failed"),
+                    ex.getMessage()));
         }
     }
 
@@ -109,11 +112,11 @@ public class DiscordBot {
         try {
             guildsDb.removeGuild(guild);
             guilds.remove(guild.getSnowflake());
-            return Mono.just("Unregistered guild "
-                    + guild.getSnowflake().asString() + " from the database");
+            return Mono.just(MessageFormat.format(lc("unregistered-guild"),
+                    guild.getSnowflake().asString()));
         } catch (SQLException ex) {
-            return Mono.just("Warning! Removing the guild failed: "
-                    + ex.getMessage());
+            return Mono.just(MessageFormat.format(lc("warn-guild-remove-failed"),
+                    ex.getMessage()));
         }
     }
 
@@ -147,28 +150,30 @@ public class DiscordBot {
             localDb = LocalDb.connect("data.db");
             guildsDb = new GuildsDb(localDb);
         } catch (SQLException e) {
-            System.err.println("Error: " + e.getMessage());
+            System.err.println(MessageFormat.format(lc("error"), e.getMessage()));
         }
 
         if (isNew) // create a new database
             try {
                 new LocalDb().createDatabaseTables(localDb);
-                System.out.println("Created an empty database");
+                System.out.println(lc("created-empty-db"));
             } catch (SQLException | IOException e) {
-                System.err.println("Error while creating the database:" + e.getMessage());
+                System.err.println(MessageFormat.format(lc("error-creating-db"),
+                        e.getMessage()));
                 success = false;
             }
 
         try {
             guilds = guildsDb.getGuilds();
-            System.out.println("Database loaded successfully");
+            System.out.println(lc("db-loaded-success"));
         } catch (SQLException e) {
-            System.err.println("Error while reading from the database: " + e.getMessage());
+            System.err.println(MessageFormat.format(lc("error-reading-db"),
+                    e.getMessage()));
             success = false;
         }
 
         if (!success) {
-            System.err.println("FATAL: Unable to establish the database connection");
+            System.err.println(lc("fatal-db-connect-failed"));
             System.exit(1);
         }
     }
@@ -179,7 +184,7 @@ public class DiscordBot {
      */
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.err.println("Please provide the bot token!");
+            System.err.println(lc("provide-token"));
             System.exit(1);
         }
 
@@ -188,7 +193,7 @@ public class DiscordBot {
 
         client = DiscordClientBuilder.create(args[0]).build().login().block();
         if (client == null) {
-            System.err.println("Error: Login failed");
+            System.err.println(lc("login-failed"));
             System.exit(1);
         }
         setUpEventDispatcher();
@@ -197,8 +202,8 @@ public class DiscordBot {
             try {
                 localDb.close();
             } catch (SQLException e) {
-                System.err.println("Warning! Closing the database connection"
-                        + " failed: " + e.getMessage());
+                System.err.println(MessageFormat.format(lc("warn-db-close-failed"),
+                        e.getMessage()));
             }
             return true;
         }).block();
