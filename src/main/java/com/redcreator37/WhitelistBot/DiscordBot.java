@@ -22,8 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A Discord Bot that aims to simplify server management for
- * a variety of different games
+ * A Discord bot that aims to simplify server management for FiveM-based
+ * game servers
  *
  * @author RedCreator37
  */
