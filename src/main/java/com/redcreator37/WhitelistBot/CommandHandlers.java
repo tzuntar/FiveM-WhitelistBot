@@ -122,4 +122,25 @@ public class CommandHandlers {
                 })).block();
     }
 
+    /**
+     * Checks if this player ID is invalid and embeds an error message
+     * into the passed {@link MessageChannel} if it is
+     *
+     * @param id      the ID to check
+     * @param channel the {@link MessageChannel} where the message about
+     *                an invalid ID will be embedded
+     * @return <code>true</code> if the ID is invalid, <code>false</code>
+     * otherwise
+     */
+    public static boolean invalidPlayerIdEmbed(String id, MessageChannel channel) {
+        if (!checkIdInvalid(id)) return false;
+        channel.createEmbed(spec -> {
+            spec.setTitle(lc("invalid-id"));
+            spec.setColor(Color.ORANGE);
+            spec.addField(lc("entered-id"), id, true);
+            spec.setTimestamp(Instant.now());
+        }).block();
+        return true;
+    }
+
 }
