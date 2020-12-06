@@ -32,7 +32,7 @@ public class DiscordBot {
     /**
      * The prefix with which the command can be executed
      */
-    private static final char cmdPrefix = '%';
+    static final char cmdPrefix = '%';
 
     /**
      * The currently used gateway client
@@ -87,10 +87,11 @@ public class DiscordBot {
      * @param guild the guild to add
      * @return the status message
      */
-    private static Mono<String> addGuild(Guild guild) {
+    private static Mono<String> addGuild(Guild guild, GuildCreateEvent event) {
         try {
             guildsDb.addGuild(guild);
             guilds.put(guild.getSnowflake(), guild);
+            CommandHandlers.sendWelcomeMessage(event);
             return Mono.just("Registered guild "
                     + guild.getSnowflake().asString() + " to the database");
         } catch (SQLException ex) {
@@ -130,7 +131,7 @@ public class DiscordBot {
         client.getEventDispatcher().on(GuildCreateEvent.class)
                 .flatMap(e -> Mono.just(e.getGuild())
                         .flatMap(guild -> Mono.just(new Guild(0, guild.getId(), Instant.now())))
-                        .flatMap(DiscordBot::addGuild))
+                        .flatMap(guild -> Mono.just(addGuild(guild, e))))
                 .subscribe(System.out::println);
         client.getEventDispatcher().on(GuildDeleteEvent.class)
                 .flatMap(e -> Mono.justOrEmpty(e.getGuild())
