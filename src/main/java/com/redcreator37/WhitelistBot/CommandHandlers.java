@@ -2,11 +2,13 @@ package com.redcreator37.WhitelistBot;
 
 import discord4j.core.event.domain.guild.GuildCreateEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
+import reactor.core.publisher.Mono;
 
 import java.text.MessageFormat;
 import java.time.Instant;
@@ -104,19 +106,21 @@ public class CommandHandlers {
      * Sends the welcome message to the private channel of the owner of
      * the guild where the {@link GuildCreateEvent} has occurred
      *
-     * @param event the {@link GuildCreateEvent} which has occurred when
-     *              the bot has joined the guild
+     * @param guild the {@link Guild} where the bot has joined
      */
-    static void sendWelcomeMessage(GuildCreateEvent event) {
-        event.getGuild().getOwner().flatMap(User::getPrivateChannel)
+    static void sendWelcomeMessage(Guild guild) {
+        guild.getOwner().flatMap(User::getPrivateChannel)
                 .flatMap(channel -> channel.createEmbed(spec -> {
                     spec.setTitle(lc("hi-there"));
                     spec.setColor(Color.LIGHT_SEA_GREEN);
-                    spec.setDescription(MessageFormat.format(lc("received-message-owner"),
-                            event.getGuild().getName()));
                     spec.addField(lc("finish-setup"), MessageFormat
                             .format(lc("to-finish-setup-do"), DiscordBot.cmdPrefix), false);
+                    spec.setFooter(MessageFormat.format(lc("received-message-owner"),
+                            guild.getName()), null);
                     spec.setTimestamp(Instant.now());
+                    // get the data about the bot to fill in the author fields
+                    guild.getClient().getSelf().flatMap(bot -> Mono.just(spec.setAuthor(bot
+                            .getUsername(), null, bot.getAvatarUrl()))).block();
                 })).block();
     }
 
