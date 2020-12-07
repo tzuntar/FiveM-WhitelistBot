@@ -89,16 +89,14 @@ public class CommandHandlers {
         if (!event.getMember().isPresent()) return true;
         else if (roleName == null) return false;
         boolean permission = findRole(event.getMember().get(), roleName) != null;
-        if (!permission) {
-            getMessageChannel(event).createEmbed(spec -> {
-                spec.setTitle(lc("permission-denied"));
-                spec.setColor(Color.RED);
-                spec.setAuthor(event.getMember().get().getUsername(), null, null);
-                spec.addField(lc("no-permission-to-use-command"),
-                        MessageFormat.format(lc("required-role"), roleName), false);
-                spec.setTimestamp(Instant.now());
-            }).block();
-        }
+        if (!permission) getMessageChannel(event).createEmbed(spec -> {
+            spec.setTitle(lc("permission-denied"));
+            spec.setColor(Color.RED);
+            spec.setAuthor(event.getMember().get().getUsername(), null, null);
+            spec.addField(lc("no-permission-to-use-command"),
+                    MessageFormat.format(lc("required-role"), roleName), false);
+            spec.setTimestamp(Instant.now());
+        }).block();
         return !permission;
     }
 

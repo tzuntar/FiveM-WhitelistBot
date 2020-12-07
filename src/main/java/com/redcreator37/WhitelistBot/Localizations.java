@@ -17,8 +17,8 @@ public class Localizations {
             getBundleFromLangCode("Strings", "en_US").get();
 
     /**
-     * Returns the localized message from the message {@link ResourceBundle}
-     * with the matching key
+     * Returns the localized message with the matching tag from the
+     * strings {@link ResourceBundle}
      *
      * @param key the localization key
      * @return the message (or <code>null</code> if the key isn't valid)

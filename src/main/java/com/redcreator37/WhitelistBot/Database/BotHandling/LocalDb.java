@@ -1,9 +1,8 @@
 package com.redcreator37.WhitelistBot.Database.BotHandling;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -30,14 +29,13 @@ public final class LocalDb {
     /**
      * Creates possibly nonexistent database tables
      *
-     * @param con database connection
+     * @param con       database connection
+     * @param sqlStream the stream to the file which contains SQL
+     *                  queries to execute to generate the tables
      * @throws SQLException on errors
      */
-    public void createDatabaseTables(Connection con) throws SQLException, IOException {
-        FileInputStream fileInputStream = new FileInputStream(this.getClass()
-                .getResource("GenerateDb.sql").getFile());
-        BufferedReader br = new BufferedReader(new InputStreamReader(
-                new DataInputStream(fileInputStream)));
+    public void createDatabaseTables(Connection con, InputStream sqlStream) throws SQLException, IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(sqlStream));
         StringBuilder builder = new StringBuilder();
         String line;
         while ((line = br.readLine()) != null)
