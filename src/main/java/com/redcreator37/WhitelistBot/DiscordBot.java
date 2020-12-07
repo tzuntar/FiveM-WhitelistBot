@@ -93,7 +93,7 @@ public class DiscordBot {
         try {
             guildsDb.addGuild(guild);
             guilds.put(guild.getSnowflake(), guild);
-            CommandHandlers.sendWelcomeMessage(event);
+            CommandHandlers.sendWelcomeMessage(event.getGuild());
             return Mono.just(MessageFormat.format(lc("registered-guild"),
                     guild.getSnowflake().asString()));
         } catch (SQLException ex) {

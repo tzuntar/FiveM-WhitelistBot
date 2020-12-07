@@ -46,9 +46,10 @@ public class DbInstances {
         PreparedStatement st = con.prepareStatement("select * from db_instances"
                 + " where guild_id = ?");
         st.closeOnCompletion();
+        st.setString(1, guildId.asString());
         ResultSet set = st.executeQuery();
-        Snowflake s = Snowflake.of(set.getString("guild_id"));
-        SharedDbProvider instance = new SharedDbProvider(s,
+        if (!set.next()) return null;
+        SharedDbProvider instance = new SharedDbProvider(guildId,
                 set.getString("server"),
                 set.getString("username"),
                 set.getString("password"),
