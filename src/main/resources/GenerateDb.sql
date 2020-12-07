@@ -4,7 +4,7 @@ create table guilds
         primary key autoincrement,
     snowflake  text    not null,
     joined     date    not null,
-    admin_role text default 'admins' not null
+    admin_role text default 'admins'
 );
 --
 create table caches
