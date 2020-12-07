@@ -7,6 +7,7 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
 
@@ -77,6 +78,20 @@ public class CommandHandlers {
     }
 
     /**
+     * Sets the author data for this {@link EmbedCreateSpec} to the currently
+     * running bot instance
+     *
+     * @param guild the {@link Guild} context to operate on
+     * @param spec  the {@link EmbedCreateSpec} to set the data into
+     */
+    public static void setSelfAuthor(Guild guild, EmbedCreateSpec spec) {
+        guild.getClient().getSelf().flatMap(bot -> {
+            spec.setAuthor(bot.getUsername(), null, bot.getAvatarUrl());
+            return Mono.empty();
+        }).block();
+    }
+
+    /**
      * Checks whether the member causing the {@link MessageCreateEvent}
      * doesn't have the permission to invoke the command.
      *
@@ -118,9 +133,7 @@ public class CommandHandlers {
                     spec.setFooter(MessageFormat.format(lc("received-message-owner"),
                             guild.getName()), null);
                     spec.setTimestamp(Instant.now());
-                    // get the data about the bot to fill in the author fields
-                    guild.getClient().getSelf().flatMap(bot -> Mono.just(spec.setAuthor(bot
-                            .getUsername(), null, bot.getAvatarUrl()))).block();
+                    setSelfAuthor(guild, spec);
                 })).block();
     }
 
