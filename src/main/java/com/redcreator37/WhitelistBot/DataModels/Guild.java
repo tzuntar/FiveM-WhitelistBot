@@ -253,7 +253,8 @@ public class Guild {
         Guild guild = (Guild) o;
         return id == guild.id && snowflake.equals(guild.snowflake)
                 && joined.equals(guild.joined) && Objects.equals(adminRole, guild.adminRole)
-                && Objects.equals(sharedDbProvider, guild.sharedDbProvider) && Objects.equals(fiveMDb, guild.fiveMDb)
+                && Objects.equals(sharedDbProvider, guild.sharedDbProvider)
+                && Objects.equals(fiveMDb, guild.fiveMDb)
                 && Objects.equals(whitelisted, guild.whitelisted);
     }
 
