@@ -12,9 +12,12 @@ import reactor.core.publisher.Mono;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Stack;
+import java.util.stream.Collectors;
 
 import static com.redcreator37.WhitelistBot.Localizations.lc;
 
@@ -125,19 +128,36 @@ public class Guild {
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
     public Mono<Void> listWhitelisted(MessageCreateEvent event) {
         if (CommandHandlers.checkNotAllowed(adminRole, event)) return Mono.empty();
-        MessageChannel channel = event.getMessage().getChannel().block();
-        assert channel != null;
-        for (int i = 0; i < whitelisted.size(); i++) {
-            int perMessage = 20;
-            int current = (i / perMessage) + 1;
-            String header = MessageFormat.format(lc("registered-players-format"),
-                    current, current * perMessage);
-            StringBuilder msg = new StringBuilder(perMessage * 35).append(header);
-            for (int j = 0; j < perMessage && i < whitelisted.size(); j++) {
-                msg.append(whitelisted.get(i).getIdentifier()).append("\n");
-                i++;
+        MessageChannel channel = CommandHandlers.getMessageChannel(event);
+        Stack<WhitelistedPlayer> players = whitelisted.stream()
+                .collect(Collectors.toCollection(Stack::new));
+        for (int fieldsPerMessage = 0; fieldsPerMessage < 25; fieldsPerMessage++) {
+            if (players.isEmpty()) break;
+            List<String> fields = new ArrayList<>();
+            int namesPerField = 10;
+            for (int i = 0; i < players.size(); i++) {
+                StringBuilder b = new StringBuilder(1024);
+                for (int j = 0; j < namesPerField && i < players.size(); j++) {
+                    b.append(players.pop()).append("\n");
+                    i++;
+                }
+                fields.add(b.toString());
             }
-            channel.createMessage(msg.toString()).block();
+            // add the fields
+            int currentMessage = fieldsPerMessage;
+            channel.createEmbed(spec -> {
+                spec.setTitle(MessageFormat.format(lc("whitelisted-players-format"),
+                        currentMessage + 1, players.size() / 25));
+                spec.setColor(Color.YELLOW);
+                for (int i = 0; i < fields.size(); i++)
+                    for (int j = 0; j < 3 && i < fields.size(); j++) {
+                        spec.addField("`[" + j + 1 + "-3]`", fields.get(j), j != 2);
+                        i++;
+                    }
+                CommandHandlers.setSelfAuthor(Objects.requireNonNull(event
+                        .getGuild().block()), spec);
+                spec.setTimestamp(Instant.now());
+            }).block();
         }
         return Mono.empty();
     }
