@@ -119,11 +119,11 @@ public class Guild {
 
     /**
      * Lists all whitelisted players for this guild using multiple
-     * messages
+     * embeds
      *
      * @param event the {@link MessageCreateEvent} which occurred when
      *              the calling message was sent
-     * @return An empty {@link Mono} call
+     * @return an empty {@link Mono} call
      */
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
     public Mono<Void> listWhitelisted(MessageCreateEvent event) {
@@ -135,15 +135,17 @@ public class Guild {
             if (players.isEmpty()) break;
             List<String> fields = new ArrayList<>();
             int namesPerField = 10;
+            // filter player IDs into groups of 10
             for (int i = 0; i < players.size(); i++) {
                 StringBuilder b = new StringBuilder(1024);
                 for (int j = 0; j < namesPerField && i < players.size(); j++) {
                     b.append(players.pop()).append("\n");
                     i++;
                 }
-                fields.add(b.toString());
+                fields.add(b.toString().trim());
             }
-            // add the fields
+            // add the fields with player IDs (10 per each field)
+            // and put them into an embed on the guild
             int currentMessage = fieldsPerMessage;
             channel.createEmbed(spec -> {
                 spec.setTitle(MessageFormat.format(lc("whitelisted-players-format"),
