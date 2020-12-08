@@ -78,6 +78,8 @@ public class DiscordBot {
                 .map(cnt -> Arrays.asList(cnt.split(" ")))
                 .doOnNext(cmd -> guilds.get(e.getGuildId().get())
                         .unlistPlayer(cmd, e)).then());
+        commands.put("getadmin", e -> guilds.get(e.getGuildId().get())
+                .embedAdminRoleData(e).then());
     }
 
     /**

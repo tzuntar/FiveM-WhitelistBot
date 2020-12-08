@@ -5,6 +5,7 @@ import com.redcreator37.WhitelistBot.Database.GameHandling.FiveMDb;
 import com.redcreator37.WhitelistBot.Database.GameHandling.SharedDbProvider;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
@@ -162,6 +163,32 @@ public class Guild {
             }).block();
         }
         return Mono.empty();
+    }
+
+    /**
+     * Embeds data about the current admin role into the channel
+     *
+     * @param event the {@link MessageCreateEvent} which occurred when
+     *              the calling message was sent
+     * @return a {@link Mono} with the sent {@link Message}
+     */
+    public Mono<Message> embedAdminRoleData(MessageCreateEvent event) {
+        if (CommandHandlers.checkNotAllowed(adminRole, event)) return Mono.empty();
+        return CommandHandlers.getMessageChannel(event).createEmbed(spec -> {
+            if (adminRole == null) {
+                spec.setTitle("No admin role defined");
+                spec.setColor(Color.RED);
+                spec.addField("There's currently no admin role defined yet",
+                        "Use the command `%setadmin` to set the admin role", false);
+            } else {
+                spec.setColor(Color.YELLOW);
+                spec.addField("The current admin role is " + adminRole,
+                        "To change it, use the `%setadmin` command", false);
+            }
+            CommandHandlers.setSelfAuthor(Objects.requireNonNull(event
+                    .getGuild().block()), spec);
+            spec.setTimestamp(Instant.now());
+        });
     }
 
     /**
