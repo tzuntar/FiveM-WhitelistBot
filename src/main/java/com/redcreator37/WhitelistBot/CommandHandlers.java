@@ -24,14 +24,15 @@ import static com.redcreator37.WhitelistBot.Localizations.lc;
 public class CommandHandlers {
 
     /**
-     * Checks whether the entered command is invalid
+     * Checks whether the entered command is missing the player
+     * specified
      *
      * @param entered the message, separated by spaces
      * @param channel the {@link MessageChannel} in which the message was sent
      * @return <code>true</code> if the command is <strong>invalid</strong>,
      * otherwise <code>false</code>
      */
-    public static boolean checkCmdInvalid(List<String> entered, MessageChannel channel) {
+    public static boolean checkPlayerParamMissing(List<String> entered, MessageChannel channel) {
         assert channel != null;
         if (entered.size() < 2) {
             channel.createMessage(lc("which-player")).block();
