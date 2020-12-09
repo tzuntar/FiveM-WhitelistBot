@@ -1,26 +1,14 @@
 package com.redcreator37.WhitelistBot.DataModels;
 
-import com.redcreator37.WhitelistBot.CommandHandlers;
 import com.redcreator37.WhitelistBot.Database.GameHandling.FiveMDb;
 import com.redcreator37.WhitelistBot.Database.GameHandling.SharedDbProvider;
 import discord4j.common.util.Snowflake;
-import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.channel.MessageChannel;
-import discord4j.rest.util.Color;
-import reactor.core.publisher.Mono;
 
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Stack;
-import java.util.stream.Collectors;
-
-import static com.redcreator37.WhitelistBot.Localizations.lc;
 
 /**
  * Represents exactly one Discord {@link discord4j.core.object.entity.Guild}
@@ -119,135 +107,6 @@ public class Guild {
     }
 
     /**
-     * Lists all whitelisted players for this guild using multiple
-     * embeds
-     *
-     * @param event the {@link MessageCreateEvent} which occurred when
-     *              the calling message was sent
-     * @return an empty {@link Mono} call
-     */
-    @SuppressWarnings("BlockingMethodInNonBlockingContext")
-    public Mono<Void> listWhitelisted(MessageCreateEvent event) {
-        if (CommandHandlers.checkNotAllowed(adminRole, event)) return Mono.empty();
-        MessageChannel channel = CommandHandlers.getMessageChannel(event);
-        Stack<WhitelistedPlayer> players = whitelisted.stream()
-                .collect(Collectors.toCollection(Stack::new));
-        for (int fieldsPerMessage = 0; fieldsPerMessage < 25; fieldsPerMessage++) {
-            if (players.isEmpty()) break;
-            List<String> fields = new ArrayList<>();
-            int namesPerField = 10;
-            // filter player IDs into groups of 10
-            for (int i = 0; i < players.size(); i++) {
-                StringBuilder b = new StringBuilder(1024);
-                for (int j = 0; j < namesPerField && i < players.size(); j++) {
-                    b.append(players.pop()).append("\n");
-                    i++;
-                }
-                fields.add(b.toString().trim());
-            }
-            // add the fields with player IDs (10 per each field)
-            // and put them into an embed on the guild
-            int currentMessage = fieldsPerMessage;
-            channel.createEmbed(spec -> {
-                spec.setTitle(MessageFormat.format(lc("whitelisted-players-format"),
-                        currentMessage + 1, players.size() / 25));
-                spec.setColor(Color.YELLOW);
-                for (int i = 0; i < fields.size(); i++)
-                    for (int j = 0; j < 3 && i < fields.size(); j++) {
-                        spec.addField("`[" + j + 1 + "-3]`", fields.get(j), j != 2);
-                        i++;
-                    }
-                CommandHandlers.setSelfAuthor(Objects.requireNonNull(event
-                        .getGuild().block()), spec);
-                spec.setTimestamp(Instant.now());
-            }).block();
-        }
-        return Mono.empty();
-    }
-
-    /**
-     * Embeds data about the current admin role into the channel
-     *
-     * @param event the {@link MessageCreateEvent} which occurred when
-     *              the calling message was sent
-     * @return a {@link Mono} with the sent {@link Message}
-     */
-    public Mono<Message> embedAdminRoleData(MessageCreateEvent event) {
-        if (CommandHandlers.checkNotAllowed(adminRole, event)) return Mono.empty();
-        return CommandHandlers.getMessageChannel(event).createEmbed(spec -> {
-            if (adminRole == null) {
-                spec.setTitle("No admin role defined");
-                spec.setColor(Color.RED);
-                spec.addField("There's currently no admin role defined yet",
-                        "Use the command `%setadmin` to set the admin role", false);
-            } else {
-                spec.setColor(Color.YELLOW);
-                spec.addField("The current admin role is " + adminRole,
-                        "To change it, use the `%setadmin` command", false);
-            }
-            CommandHandlers.setSelfAuthor(Objects.requireNonNull(event
-                    .getGuild().block()), spec);
-            spec.setTimestamp(Instant.now());
-        });
-    }
-
-    /**
-     * Whitelists the player in the game database whose name was
-     * specified in the message
-     *
-     * @param cmd   the list of parameters of the sent message
-     * @param event the {@link MessageCreateEvent} which occurred when
-     *              the message was sent
-     */
-    public void whitelistPlayer(List<String> cmd, MessageCreateEvent event) {
-        if (CommandHandlers.checkNotAllowed(adminRole, event)) return;
-        MessageChannel channel = CommandHandlers.getMessageChannel(event);
-        if (CommandHandlers.checkPlayerParamMissing(cmd, channel)) return;
-        channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
-            if (CommandHandlers.invalidPlayerIdEmbed(cmd.get(1), channel)) return;
-            Optional<String> fail = whitelistPlayerDb(cmd.get(1));
-            if (!fail.isPresent()) {
-                spec.setColor(Color.GREEN);
-                spec.setTitle(lc("player-whitelisted"));
-                spec.addField(lc("player-id"), cmd.get(1), true);
-            } else {
-                spec.setColor(Color.RED);
-                spec.setTitle(lc("whitelist-failed"));
-                spec.addField(lc("error"), fail.get(), true);
-            }
-            spec.setTimestamp(Instant.now());
-        })).block();
-    }
-
-    /**
-     * Removes the player from the in-game whitelist.
-     * The player's data is retrieved by parsing the message
-     *
-     * @param cmd   the list of parameters of the sent message
-     * @param event the {@link MessageCreateEvent} which occurred when
-     *              the message was sent
-     */
-    public void unlistPlayer(List<String> cmd, MessageCreateEvent event) {
-        if (CommandHandlers.checkNotAllowed(adminRole, event)) return;
-        MessageChannel channel = CommandHandlers.getMessageChannel(event);
-        if (CommandHandlers.checkPlayerParamMissing(cmd, channel)) return;
-        channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
-            if (CommandHandlers.invalidPlayerIdEmbed(cmd.get(1), channel)) return;
-            Optional<String> fail = unlistPlayerDb(cmd.get(1));
-            if (!fail.isPresent()) {
-                spec.setColor(Color.YELLOW);
-                spec.setTitle(lc("player-unlisted"));
-                spec.addField(lc("player-id"), cmd.get(1), true);
-            } else {
-                spec.setColor(Color.RED);
-                spec.setTitle(lc("unlist-failed"));
-                spec.addField(lc("error"), fail.get(), true);
-            }
-            spec.setTimestamp(Instant.now());
-        })).block();
-    }
-
-    /**
      * Uses the connection to the in-game database to whitelist the
      * player with this SteamID
      *
@@ -255,7 +114,7 @@ public class Guild {
      * @return an empty {@link Optional} on success or the error
      * message
      */
-    private Optional<String> whitelistPlayerDb(String playerId) {
+    public Optional<String> whitelistPlayer(String playerId) {
         try {
             fiveMDb.whitelistPlayer(new WhitelistedPlayer(playerId));
             whitelisted.add(new WhitelistedPlayer(playerId));
@@ -273,7 +132,7 @@ public class Guild {
      * @return an empty {@link Optional} on success or the error
      * message
      */
-    private Optional<String> unlistPlayerDb(String playerId) {
+    public Optional<String> unlistPlayer(String playerId) {
         try {
             fiveMDb.removePlayer(new WhitelistedPlayer(playerId));
             whitelisted.remove(new WhitelistedPlayer(playerId));
@@ -293,6 +152,10 @@ public class Guild {
 
     public String getAdminRole() {
         return adminRole;
+    }
+
+    public List<WhitelistedPlayer> getWhitelisted() {
+        return whitelisted;
     }
 
     @Override

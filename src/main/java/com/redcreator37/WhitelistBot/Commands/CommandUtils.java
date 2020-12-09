@@ -1,6 +1,6 @@
-package com.redcreator37.WhitelistBot;
+package com.redcreator37.WhitelistBot.Commands;
 
-import discord4j.core.event.domain.guild.GuildCreateEvent;
+import com.redcreator37.WhitelistBot.DiscordBot;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
@@ -21,7 +21,7 @@ import static com.redcreator37.WhitelistBot.Localizations.lc;
 /**
  * Handler methods for common command-related routines
  */
-public class CommandHandlers {
+public class CommandUtils {
 
     /**
      * Checks whether the entered command is missing the player
@@ -32,6 +32,7 @@ public class CommandHandlers {
      * @return <code>true</code> if the command is <strong>invalid</strong>,
      * otherwise <code>false</code>
      */
+    @Deprecated
     public static boolean checkPlayerParamMissing(List<String> entered, MessageChannel channel) {
         assert channel != null;
         if (entered.size() < 2) {
@@ -60,7 +61,7 @@ public class CommandHandlers {
      * @return the matching {@link Role} or <code>null</code> if the
      * member lacks it
      */
-    private static Role findRole(Member member, String name) {
+    static Role findRole(Member member, String name) {
         return member.getRoles().filter(role -> role.getName().equals(name)).blockFirst();
     }
 
@@ -85,46 +86,20 @@ public class CommandHandlers {
      * @param guild the {@link Guild} context to operate on
      * @param spec  the {@link EmbedCreateSpec} to set the data into
      */
-    public static void setSelfAuthor(Guild guild, EmbedCreateSpec spec) {
-        guild.getClient().getSelf().flatMap(bot -> {
+    public static void setSelfAuthor(Mono<Guild> guild, EmbedCreateSpec spec) {
+        guild.flatMap(g -> g.getClient().getSelf().flatMap(bot -> {
             spec.setAuthor(bot.getUsername(), null, bot.getAvatarUrl());
             return Mono.empty();
-        }).block();
+        })).block();
     }
 
     /**
-     * Checks whether the member causing the {@link MessageCreateEvent}
-     * doesn't have the permission to invoke the command.
+     * Sends the welcome message to the private channel of the owner
+     * of the guild
      *
-     * @param roleName the {@link Role} the member is required to have to
-     *                 be allowed to invoke the command
-     * @param event    the {@link MessageCreateEvent} which occurred when
-     *                 the message was sent
-     * @return <code>true</code> if the user <strong>doesn't have</strong>
-     * the permission, <code>false</code> otherwise
+     * @param guild the {@link Guild} context to get the data from
      */
-    public static boolean checkNotAllowed(String roleName, MessageCreateEvent event) {
-        if (!event.getMember().isPresent()) return true;
-        else if (roleName == null) return false;
-        boolean permission = findRole(event.getMember().get(), roleName) != null;
-        if (!permission) getMessageChannel(event).createEmbed(spec -> {
-            spec.setTitle(lc("permission-denied"));
-            spec.setColor(Color.RED);
-            spec.setAuthor(event.getMember().get().getUsername(), null, null);
-            spec.addField(lc("no-permission-to-use-command"),
-                    MessageFormat.format(lc("required-role"), roleName), false);
-            spec.setTimestamp(Instant.now());
-        }).block();
-        return !permission;
-    }
-
-    /**
-     * Sends the welcome message to the private channel of the owner of
-     * the guild where the {@link GuildCreateEvent} has occurred
-     *
-     * @param guild the {@link Guild} where the bot has joined
-     */
-    static void sendWelcomeMessage(Guild guild) {
+    public static void sendWelcome(Guild guild) {
         guild.getOwner().flatMap(User::getPrivateChannel)
                 .flatMap(channel -> channel.createEmbed(spec -> {
                     spec.setTitle(lc("hi-there"));
@@ -134,7 +109,7 @@ public class CommandHandlers {
                     spec.setFooter(MessageFormat.format(lc("received-message-owner"),
                             guild.getName()), null);
                     spec.setTimestamp(Instant.now());
-                    setSelfAuthor(guild, spec);
+                    CommandUtils.setSelfAuthor(Mono.just(guild), spec);
                 })).block();
     }
 

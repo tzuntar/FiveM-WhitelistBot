@@ -1,5 +1,10 @@
 package com.redcreator37.WhitelistBot;
 
+import com.redcreator37.WhitelistBot.Commands.BotCommands.EmbedAdminData;
+import com.redcreator37.WhitelistBot.Commands.BotCommands.ListWhitelisted;
+import com.redcreator37.WhitelistBot.Commands.BotCommands.UnlistPlayer;
+import com.redcreator37.WhitelistBot.Commands.BotCommands.WhitelistPlayer;
+import com.redcreator37.WhitelistBot.Commands.CommandUtils;
 import com.redcreator37.WhitelistBot.DataModels.Guild;
 import com.redcreator37.WhitelistBot.Database.BotHandling.GuildsDb;
 import com.redcreator37.WhitelistBot.Database.BotHandling.LocalDb;
@@ -35,7 +40,7 @@ public class DiscordBot {
     /**
      * The prefix to look for when parsing messages into commands
      */
-    static final char cmdPrefix = '%';
+    public static final char cmdPrefix = '%';
 
     /**
      * The currently used {@link GatewayDiscordClient} object when
@@ -68,18 +73,18 @@ public class DiscordBot {
      */
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static void setUpCommands() {
-        commands.put("list", e -> Mono.just(guilds.get(e.getGuildId().get())
-                .listWhitelisted(e)).then());
+        commands.put("list", e -> Mono.just(guilds.get(e.getGuildId().get())).flatMap(guild ->
+                new ListWhitelisted(guild.getAdminRole()).execute(null, guild, e).then()));
         commands.put("whitelist", e -> Mono.justOrEmpty(e.getMessage().getContent())
                 .map(cnt -> Arrays.asList(cnt.split(" ")))
-                .doOnNext(cmd -> guilds.get(e.getGuildId().get())
-                        .whitelistPlayer(cmd, e)).then());
+                .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get())).flatMap(guild ->
+                        new WhitelistPlayer(guild.getAdminRole()).execute(cmd, guild, e))).then());
         commands.put("unlist", e -> Mono.justOrEmpty(e.getMessage().getContent())
                 .map(cnt -> Arrays.asList(cnt.split(" ")))
-                .doOnNext(cmd -> guilds.get(e.getGuildId().get())
-                        .unlistPlayer(cmd, e)).then());
-        commands.put("getadmin", e -> guilds.get(e.getGuildId().get())
-                .embedAdminRoleData(e).then());
+                .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get())).flatMap(guild ->
+                        new UnlistPlayer(guild.getAdminRole()).execute(cmd, guild, e))).then());
+        commands.put("getadmin", e -> Mono.just(guilds.get(e.getGuildId().get())).flatMap(guild ->
+                new EmbedAdminData(guild.getAdminRole()).execute(null, guild, e).then()));
     }
 
     /**
@@ -95,7 +100,7 @@ public class DiscordBot {
         try {
             guildsDb.addGuild(guild);
             guilds.put(guild.getSnowflake(), guild);
-            CommandHandlers.sendWelcomeMessage(event.getGuild());
+            CommandUtils.sendWelcome(event.getGuild());
             return Mono.just(MessageFormat.format(lc("registered-guild"),
                     guild.getSnowflake().asString()));
         } catch (SQLException ex) {
