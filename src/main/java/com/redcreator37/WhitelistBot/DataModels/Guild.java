@@ -202,7 +202,7 @@ public class Guild {
     public void whitelistPlayer(List<String> cmd, MessageCreateEvent event) {
         if (CommandHandlers.checkNotAllowed(adminRole, event)) return;
         MessageChannel channel = CommandHandlers.getMessageChannel(event);
-        if (CommandHandlers.checkCmdInvalid(cmd, channel)) return;
+        if (CommandHandlers.checkPlayerParamMissing(cmd, channel)) return;
         channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
             if (CommandHandlers.invalidPlayerIdEmbed(cmd.get(1), channel)) return;
             Optional<String> fail = whitelistPlayerDb(cmd.get(1));
@@ -230,7 +230,7 @@ public class Guild {
     public void unlistPlayer(List<String> cmd, MessageCreateEvent event) {
         if (CommandHandlers.checkNotAllowed(adminRole, event)) return;
         MessageChannel channel = CommandHandlers.getMessageChannel(event);
-        if (CommandHandlers.checkCmdInvalid(cmd, channel)) return;
+        if (CommandHandlers.checkPlayerParamMissing(cmd, channel)) return;
         channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
             if (CommandHandlers.invalidPlayerIdEmbed(cmd.get(1), channel)) return;
             Optional<String> fail = unlistPlayerDb(cmd.get(1));
