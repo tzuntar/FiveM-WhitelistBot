@@ -128,4 +128,12 @@ public abstract class BotCommand {
      */
     public abstract Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event);
 
+    /**
+     * Returns the name of this {@link BotCommand}
+     *
+     * @return the name of the command, by which it can be executed
+     */
+    protected String getName() {
+        return name;
+    }
 }
