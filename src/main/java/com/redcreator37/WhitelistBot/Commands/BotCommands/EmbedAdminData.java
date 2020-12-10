@@ -3,10 +3,12 @@ package com.redcreator37.WhitelistBot.Commands.BotCommands;
 import com.redcreator37.WhitelistBot.Commands.BotCommand;
 import com.redcreator37.WhitelistBot.Commands.CommandUtils;
 import com.redcreator37.WhitelistBot.DataModels.Guild;
+import com.redcreator37.WhitelistBot.DiscordBot;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
 
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.List;
 
@@ -43,8 +45,9 @@ public class EmbedAdminData extends BotCommand {
                         "Use the command `%setadmin` to set the admin role", false);
             } else {
                 spec.setColor(Color.YELLOW);
-                spec.addField("The current admin role is " + context.getAdminRole(),
-                        "To change it, use the `%setadmin` command", false);
+                spec.addField(MessageFormat.format("The current admin role is `{0}`",
+                        context.getAdminRole()), MessageFormat.format("To change it, use"
+                        + " the `{0}setadmin` command", DiscordBot.cmdPrefix), false);
             }
             CommandUtils.setSelfAuthor(event.getGuild(), spec);
             spec.setTimestamp(Instant.now());
