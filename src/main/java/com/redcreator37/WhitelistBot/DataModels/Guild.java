@@ -158,6 +158,10 @@ public class Guild {
         return whitelisted;
     }
 
+    public void setAdminRole(String adminRole) {
+        this.adminRole = adminRole;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

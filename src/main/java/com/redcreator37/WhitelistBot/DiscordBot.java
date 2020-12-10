@@ -2,6 +2,7 @@ package com.redcreator37.WhitelistBot;
 
 import com.redcreator37.WhitelistBot.Commands.BotCommands.EmbedAdminData;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.ListWhitelisted;
+import com.redcreator37.WhitelistBot.Commands.BotCommands.SetAdmin;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.UnlistPlayer;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.WhitelistPlayer;
 import com.redcreator37.WhitelistBot.Commands.CommandUtils;
@@ -85,6 +86,11 @@ public class DiscordBot {
                 .map(cnt -> Arrays.asList(cnt.split(" ")))
                 .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get()))
                         .flatMap(guild -> new UnlistPlayer(guild.getAdminRole())
+                                .execute(cmd, guild, e)).block()).then());
+        commands.put("setadmin", e -> Mono.justOrEmpty(e.getMessage().getContent())
+                .map(cnt -> Arrays.asList(cnt.split(" ")))
+                .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get()))
+                        .flatMap(guild -> new SetAdmin(guild.getAdminRole())
                                 .execute(cmd, guild, e)).block()).then());
         commands.put("getadmin", e -> Mono.just(guilds.get(e.getGuildId().get()))
                 .flatMap(guild -> new EmbedAdminData(guild.getAdminRole())
