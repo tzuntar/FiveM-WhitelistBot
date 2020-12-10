@@ -3,6 +3,7 @@ package com.redcreator37.WhitelistBot.Commands.BotCommands;
 import com.redcreator37.WhitelistBot.Commands.BotCommand;
 import com.redcreator37.WhitelistBot.Commands.CommandUtils;
 import com.redcreator37.WhitelistBot.DataModels.Guild;
+import com.redcreator37.WhitelistBot.Localizations;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
@@ -22,7 +23,7 @@ import static com.redcreator37.WhitelistBot.Localizations.lc;
 public class UnlistPlayer extends BotCommand {
 
     public UnlistPlayer(String requiredRole) {
-        super("unlist", "Removes the specified player from the whitelist",
+        super("unlist", Localizations.lc("unlists-player"),
                 new HashMap<String, Boolean>() {{
                     put("playerName", true);
                 }}, requiredRole);

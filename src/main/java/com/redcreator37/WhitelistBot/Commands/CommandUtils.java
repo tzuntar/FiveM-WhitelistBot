@@ -13,7 +13,6 @@ import reactor.core.publisher.Mono;
 
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.redcreator37.WhitelistBot.Localizations.lc;
@@ -22,25 +21,6 @@ import static com.redcreator37.WhitelistBot.Localizations.lc;
  * Handler methods for common command-related routines
  */
 public class CommandUtils {
-
-    /**
-     * Checks whether the entered command is missing the player
-     * specified
-     *
-     * @param entered the message, separated by spaces
-     * @param channel the {@link MessageChannel} in which the message was sent
-     * @return <code>true</code> if the command is <strong>invalid</strong>,
-     * otherwise <code>false</code>
-     */
-    @Deprecated
-    public static boolean checkPlayerParamMissing(List<String> entered, MessageChannel channel) {
-        assert channel != null;
-        if (entered.size() < 2) {
-            channel.createMessage(lc("which-player")).block();
-            return true;
-        }
-        return false;
-    }
 
     /**
      * Checks whether this SteamID is not in the correct format

@@ -4,6 +4,7 @@ import com.redcreator37.WhitelistBot.Commands.BotCommand;
 import com.redcreator37.WhitelistBot.Commands.CommandUtils;
 import com.redcreator37.WhitelistBot.DataModels.Guild;
 import com.redcreator37.WhitelistBot.DataModels.WhitelistedPlayer;
+import com.redcreator37.WhitelistBot.Localizations;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
@@ -24,7 +25,7 @@ import static com.redcreator37.WhitelistBot.Localizations.lc;
 public class ListWhitelisted extends BotCommand {
 
     public ListWhitelisted(String requiredRole) {
-        super("list", "Lists whitelisted players on this server", null, requiredRole);
+        super("list", Localizations.lc("lists-whitelisted-players"), null, requiredRole);
     }
 
     /**
