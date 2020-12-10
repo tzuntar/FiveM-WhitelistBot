@@ -80,12 +80,12 @@ public class DiscordBot {
                 .map(cnt -> Arrays.asList(cnt.split(" ")))
                 .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get()))
                         .flatMap(guild -> new WhitelistPlayer(guild.getAdminRole())
-                                .execute(cmd, guild, e))).then());
+                                .execute(cmd, guild, e)).block()).then());
         commands.put("unlist", e -> Mono.justOrEmpty(e.getMessage().getContent())
                 .map(cnt -> Arrays.asList(cnt.split(" ")))
                 .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get()))
                         .flatMap(guild -> new UnlistPlayer(guild.getAdminRole())
-                                .execute(cmd, guild, e))).then());
+                                .execute(cmd, guild, e)).block()).then());
         commands.put("getadmin", e -> Mono.just(guilds.get(e.getGuildId().get()))
                 .flatMap(guild -> new EmbedAdminData(guild.getAdminRole())
                         .execute(null, guild, e).then()));
