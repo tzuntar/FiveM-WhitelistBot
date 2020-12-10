@@ -3,6 +3,7 @@ package com.redcreator37.WhitelistBot.Commands.BotCommands;
 import com.redcreator37.WhitelistBot.Commands.BotCommand;
 import com.redcreator37.WhitelistBot.Commands.CommandUtils;
 import com.redcreator37.WhitelistBot.DataModels.Guild;
+import com.redcreator37.WhitelistBot.Localizations;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
@@ -22,7 +23,7 @@ import static com.redcreator37.WhitelistBot.Localizations.lc;
 public class WhitelistPlayer extends BotCommand {
 
     public WhitelistPlayer(String requiredRole) {
-        super("whitelist", "Adds the specified player to the whitelist",
+        super("whitelist", Localizations.lc("whitelists-player"),
                 new HashMap<String, Boolean>() {{
                     put("playerName", true);
                 }}, requiredRole);
@@ -40,6 +41,7 @@ public class WhitelistPlayer extends BotCommand {
      *                when the message was sent
      * @return an empty {@link Mono} object
      */
+    @SuppressWarnings("BlockingMethodInNonBlockingContext")
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
         if (!this.checkValidity(args, event).block()) return Mono.empty();

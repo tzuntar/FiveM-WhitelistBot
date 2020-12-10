@@ -100,12 +100,12 @@ public abstract class BotCommand {
         long countReq = arguments.values().stream().filter(req -> req).count();
         if (checkAllowed(event) || enteredArgs.size() >= countReq) return Mono.just(true);
         CommandUtils.getMessageChannel(event).createEmbed(spec -> {
-            spec.setTitle("Syntax error");
+            spec.setTitle(lc("syntax-error"));
             spec.setColor(Color.RED);
             StringBuilder args = new StringBuilder(100).append("`");
-            arguments.forEach((argName, req) -> // fixme: localizations
+            arguments.forEach((argName, req) ->
                     args.append(MessageFormat.format(req ? "**<{0}>** " : "*[{0}]* ", argName)));
-            spec.addField(MessageFormat.format("Usage of {0}", name),
+            spec.addField(MessageFormat.format(lc("usage-of"), name),
                     args.append("`").toString(), false);
             spec.setDescription(description);
             CommandUtils.setSelfAuthor(event.getGuild(), spec);
