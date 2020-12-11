@@ -154,6 +154,10 @@ public class Guild {
         return adminRole;
     }
 
+    public SharedDbProvider getSharedDbProvider() {
+        return sharedDbProvider;
+    }
+
     public List<WhitelistedPlayer> getWhitelisted() {
         return whitelisted;
     }
