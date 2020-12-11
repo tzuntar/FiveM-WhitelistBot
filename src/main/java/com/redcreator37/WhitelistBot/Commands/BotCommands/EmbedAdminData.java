@@ -18,8 +18,8 @@ import java.util.List;
  */
 public class EmbedAdminData extends BotCommand {
 
-    public EmbedAdminData(String requiredRole) {
-        super("getadmin", Localizations.lc("displays-current-admin"), null, requiredRole);
+    public EmbedAdminData() {
+        super("getadmin", Localizations.lc("displays-current-admin"), null);
     }
 
     /**
@@ -37,7 +37,7 @@ public class EmbedAdminData extends BotCommand {
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
-        if (!this.checkValidity(args, event).block()) return Mono.empty();
+        if (!this.checkValidity(args, event, context).block()) return Mono.empty();
         return CommandUtils.getMessageChannel(event).createEmbed(spec -> {
             if (context.getAdminRole() == null) {
                 spec.setTitle(Localizations.lc("no-admin-defined"));

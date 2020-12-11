@@ -24,8 +24,8 @@ import static com.redcreator37.WhitelistBot.Localizations.lc;
  */
 public class ListWhitelisted extends BotCommand {
 
-    public ListWhitelisted(String requiredRole) {
-        super("list", Localizations.lc("lists-whitelisted-players"), null, requiredRole);
+    public ListWhitelisted() {
+        super("list", Localizations.lc("lists-whitelisted-players"), null);
     }
 
     /**
@@ -43,7 +43,7 @@ public class ListWhitelisted extends BotCommand {
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
-        if (!this.checkValidity(args, event).block()) return Mono.empty();
+        if (!this.checkValidity(args, event, context).block()) return Mono.empty();
         MessageChannel channel = CommandUtils.getMessageChannel(event);
         Stack<WhitelistedPlayer> players = context.getWhitelisted().stream()
                 .collect(Collectors.toCollection(Stack::new));

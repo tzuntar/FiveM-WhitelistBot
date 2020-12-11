@@ -35,11 +35,6 @@ public abstract class BotCommand {
     private final HashMap<String, Boolean> arguments;
 
     /**
-     * The name of the role, required to execute this command
-     */
-    private final String roleName;
-
-    /**
      * Constructs a new BotCommand instance
      *
      * @param name        the invocation word of the command
@@ -49,35 +44,33 @@ public abstract class BotCommand {
      *                    boolean values signal whether specific
      *                    arguments are required or not. Can be
      *                    <code>null</code> if no arguments are required.
-     * @param roleName    the name of the role, required to execute
-     *                    this command
      */
-    public BotCommand(String name, String description, HashMap<String, Boolean> arguments, String roleName) {
+    public BotCommand(String name, String description, HashMap<String, Boolean> arguments) {
         this.name = name;
         this.description = description;
         this.arguments = arguments == null ? new HashMap<>() : arguments;
-        this.roleName = roleName;
     }
 
     /**
      * Checks whether the member causing the {@link MessageCreateEvent}
      * has the permission to invoke the command.
      *
-     * @param event the {@link MessageCreateEvent} which occurred when
-     *              the message was sent
+     * @param event        the {@link MessageCreateEvent} which occurred when
+     *                     the message was sent
+     * @param requiredRole the role, required to run this command
      * @return <code>true</code> if the user <strong>has</strong> the
      * permission, <code>false</code> otherwise
      */
-    private boolean checkAllowed(MessageCreateEvent event) {
+    private boolean checkAllowed(MessageCreateEvent event, String requiredRole) {
         if (!event.getMember().isPresent()) return false;
-        else if (roleName == null) return true;
-        boolean permission = CommandUtils.findRole(event.getMember().get(), roleName) != null;
+        else if (requiredRole == null) return true;
+        boolean permission = CommandUtils.findRole(event.getMember().get(), requiredRole) != null;
         if (!permission) CommandUtils.getMessageChannel(event).createEmbed(spec -> {
             spec.setTitle(lc("permission-denied"));
             spec.setColor(Color.RED);
             spec.setAuthor(event.getMember().get().getUsername(), null, null);
-            spec.addField(lc("no-permission-to-use-command"),
-                    MessageFormat.format(lc("required-role"), roleName), false);
+            spec.addField(lc("no-permission-to-use-command"), MessageFormat
+                    .format(lc("required-role"), requiredRole), false);
             spec.setTimestamp(Instant.now());
         }).block();
         return permission;
@@ -92,13 +85,17 @@ public abstract class BotCommand {
      * @param enteredArgs the {@link List} of entered arguments
      * @param event       the {@link MessageCreateEvent} which occurred when
      *                    the message was sent
+     * @param guild       the {@link Guild} in which the {@link MessageCreateEvent}
+     *                    occurred
      * @return If the requirements are met,  <code>false</code>, otherwise
      * <code>false</code>.
      */
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
-    public Mono<Boolean> checkValidity(List<String> enteredArgs, MessageCreateEvent event) {
+    public Mono<Boolean> checkValidity(List<String> enteredArgs, MessageCreateEvent event, Guild guild) {
         long countReq = arguments.values().stream().filter(req -> req).count();
-        if (checkAllowed(event) && enteredArgs.size() >= countReq) return Mono.just(true);
+        if (checkAllowed(event, guild.getAdminRole())
+                && (enteredArgs == null || enteredArgs.size() >= countReq))
+            return Mono.just(true);
         CommandUtils.getMessageChannel(event).createEmbed(spec -> {
             spec.setTitle(lc("syntax-error"));
             spec.setColor(Color.RED);

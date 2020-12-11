@@ -1,7 +1,8 @@
 package com.redcreator37.WhitelistBot;
 
+import com.redcreator37.WhitelistBot.Commands.BotCommand;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.EmbedAdminData;
-import com.redcreator37.WhitelistBot.Commands.BotCommands.GetDatabase;
+import com.redcreator37.WhitelistBot.Commands.BotCommands.EmbedDatabaseData;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.ListWhitelisted;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.SetAdmin;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.SetDatabase;
@@ -72,39 +73,38 @@ public class DiscordBot {
     private static GuildsDb guildsDb = null;
 
     /**
-     * Initializes the bot commands
+     * Registers this {@link C command} into the global {@link MessageCreateEvent}
+     * event dispatcher
+     *
+     * @param cmd         the name of the command as well as the action
+     *                    word by which the command is executed
+     * @param parseParams set to <code>true</code> if this command accepts
+     *                    parameters
+     * @param command     the {@link C command object}, which gets executed
+     * @param <C>         the command's implementation class
      */
     @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public static <C extends BotCommand> void registerCommand(String cmd, boolean parseParams, C command) {
+        if (parseParams)
+            commands.put(cmd, e -> Mono.justOrEmpty(e.getMessage().getContent())
+                    .map(cnt -> Arrays.asList(cnt.split(" ")))
+                    .doOnNext(params -> Mono.justOrEmpty(guilds.get(e.getGuildId().get()))
+                            .flatMap(guild -> command.execute(params, guild, e)).block()).then());
+        else commands.put(cmd, e -> Mono.just(guilds.get(e.getGuildId().get()))
+                .flatMap(guild -> command.execute(null, guild, e).then()));
+    }
+
+    /**
+     * Registers the bot commands
+     */
     private static void setUpCommands() {
-        commands.put("list", e -> Mono.just(guilds.get(e.getGuildId().get()))
-                .flatMap(guild -> new ListWhitelisted(guild.getAdminRole())
-                        .execute(null, guild, e).then()));
-        commands.put("whitelist", e -> Mono.justOrEmpty(e.getMessage().getContent())
-                .map(cnt -> Arrays.asList(cnt.split(" ")))
-                .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get()))
-                        .flatMap(guild -> new WhitelistPlayer(guild.getAdminRole())
-                                .execute(cmd, guild, e)).block()).then());
-        commands.put("unlist", e -> Mono.justOrEmpty(e.getMessage().getContent())
-                .map(cnt -> Arrays.asList(cnt.split(" ")))
-                .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get()))
-                        .flatMap(guild -> new UnlistPlayer(guild.getAdminRole())
-                                .execute(cmd, guild, e)).block()).then());
-        commands.put("setadmin", e -> Mono.justOrEmpty(e.getMessage().getContent())
-                .map(cnt -> Arrays.asList(cnt.split(" ")))
-                .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get()))
-                        .flatMap(guild -> new SetAdmin(guild.getAdminRole())
-                                .execute(cmd, guild, e)).block()).then());
-        commands.put("getadmin", e -> Mono.just(guilds.get(e.getGuildId().get()))
-                .flatMap(guild -> new EmbedAdminData(guild.getAdminRole())
-                        .execute(null, guild, e).then()));
-        commands.put("getdatabase", e -> Mono.just(guilds.get(e.getGuildId().get()))
-                .flatMap(guild -> new GetDatabase(guild.getAdminRole())
-                        .execute(null, guild, e).then()));
-        commands.put("setdatabase", e -> Mono.justOrEmpty(e.getMessage().getContent())
-                .map(cnt -> Arrays.asList(cnt.split(" ")))
-                .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get()))
-                        .flatMap(guild -> new SetDatabase(guild.getAdminRole())
-                                .execute(cmd, guild, e)).block()).then());
+        registerCommand("list", false, new ListWhitelisted());
+        registerCommand("whitelist", true, new WhitelistPlayer());
+        registerCommand("unlist", true, new UnlistPlayer());
+        registerCommand("getadmin", false, new EmbedAdminData());
+        registerCommand("setadmin", true, new SetAdmin());
+        registerCommand("getdatabase", false, new EmbedDatabaseData());
+        registerCommand("setdatabase", true, new SetDatabase());
     }
 
     /**
