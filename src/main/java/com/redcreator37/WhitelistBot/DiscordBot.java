@@ -84,7 +84,7 @@ public class DiscordBot {
      * @param <C>         the command's implementation class
      */
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    public static <C extends BotCommand> void registerCommand(String cmd, boolean parseParams, C command) {
+    private static <C extends BotCommand> void registerCommand(String cmd, boolean parseParams, C command) {
         if (parseParams)
             commands.put(cmd, e -> Mono.justOrEmpty(e.getMessage().getContent())
                     .map(cnt -> Arrays.asList(cnt.split(" ")))
