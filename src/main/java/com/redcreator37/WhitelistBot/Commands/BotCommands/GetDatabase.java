@@ -3,6 +3,7 @@ package com.redcreator37.WhitelistBot.Commands.BotCommands;
 import com.redcreator37.WhitelistBot.Commands.BotCommand;
 import com.redcreator37.WhitelistBot.Commands.CommandUtils;
 import com.redcreator37.WhitelistBot.DataModels.Guild;
+import com.redcreator37.WhitelistBot.Database.GameHandling.SharedDbProvider;
 import com.redcreator37.WhitelistBot.DiscordBot;
 import com.redcreator37.WhitelistBot.Localizations;
 import discord4j.core.event.domain.message.MessageCreateEvent;
@@ -14,12 +15,13 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Embeds data about the current admin role into the channel
+ * Embeds the current database data into the chat
  */
-public class EmbedAdminData extends BotCommand {
+public class GetDatabase extends BotCommand {
 
-    public EmbedAdminData(String requiredRole) {
-        super("getadmin", Localizations.lc("displays-current-admin"), null, requiredRole);
+    public GetDatabase(String requiredRole) {
+        super("getdatabase", Localizations.lc("displays-current-db"),
+                null, requiredRole);
     }
 
     /**
@@ -39,20 +41,24 @@ public class EmbedAdminData extends BotCommand {
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
         if (!this.checkValidity(args, event).block()) return Mono.empty();
         return CommandUtils.getMessageChannel(event).createEmbed(spec -> {
-            if (context.getAdminRole() == null) {
-                spec.setTitle(Localizations.lc("no-admin-defined"));
+            SharedDbProvider provider = context.getSharedDbProvider();
+            if (provider == null) {
+                spec.setTitle(Localizations.lc("no-db-yet"));
                 spec.setColor(Color.RED);
-                spec.addField(Localizations.lc("no-admin-yet"), MessageFormat
-                        .format(Localizations.lc("use-to-set-admin"), DiscordBot.cmdPrefix), false);
+                spec.addField(Localizations.lc("no-db-connected"), MessageFormat
+                        .format(Localizations.lc("use-to-connect-db"), DiscordBot.cmdPrefix), false);
             } else {
-                spec.setTitle(Localizations.lc("admin-data"));
-                spec.setColor(Color.YELLOW);
-                spec.addField(MessageFormat.format(Localizations.lc("current-admin-role"),
-                        context.getAdminRole()), MessageFormat.format(Localizations
-                        .lc("use-to-set-admin"), DiscordBot.cmdPrefix), false);
+                spec.setTitle(Localizations.lc("db-connect-data"));
+                spec.setColor(Color.GREEN);
+                spec.addField(Localizations.lc("server"), provider.getDbServer(), true);
+                spec.addField(Localizations.lc("db-name"), provider.getDbName(), true);
+                spec.addField(Localizations.lc("username"), provider.getUsername(), true);
+                spec.setDescription(MessageFormat.format(Localizations.lc("to-change-db-run"),
+                        DiscordBot.cmdPrefix));
             }
             CommandUtils.setSelfAuthor(event.getGuild(), spec);
             spec.setTimestamp(Instant.now());
         }).then();
     }
+
 }
