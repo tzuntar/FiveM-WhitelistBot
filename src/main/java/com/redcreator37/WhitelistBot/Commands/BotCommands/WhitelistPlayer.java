@@ -22,11 +22,11 @@ import static com.redcreator37.WhitelistBot.Localizations.lc;
  */
 public class WhitelistPlayer extends BotCommand {
 
-    public WhitelistPlayer(String requiredRole) {
+    public WhitelistPlayer() {
         super("whitelist", Localizations.lc("whitelists-player"),
                 new HashMap<String, Boolean>() {{
                     put("playerName", true);
-                }}, requiredRole);
+                }});
     }
 
     /**
@@ -44,7 +44,7 @@ public class WhitelistPlayer extends BotCommand {
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
-        if (!this.checkValidity(args, event).block()) return Mono.empty();
+        if (!this.checkValidity(args, event, context).block()) return Mono.empty();
         MessageChannel channel = CommandUtils.getMessageChannel(event);
         return channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
             if (CommandUtils.invalidPlayerIdEmbed(args.get(1), channel)) return;

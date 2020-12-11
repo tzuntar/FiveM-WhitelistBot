@@ -17,11 +17,10 @@ import java.util.List;
 /**
  * Embeds the current database data into the chat
  */
-public class GetDatabase extends BotCommand {
+public class EmbedDatabaseData extends BotCommand {
 
-    public GetDatabase(String requiredRole) {
-        super("getdatabase", Localizations.lc("displays-current-db"),
-                null, requiredRole);
+    public EmbedDatabaseData() {
+        super("getdatabase", Localizations.lc("displays-current-db"), null);
     }
 
     /**
@@ -39,7 +38,7 @@ public class GetDatabase extends BotCommand {
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
-        if (!this.checkValidity(args, event).block()) return Mono.empty();
+        if (!this.checkValidity(args, event, context).block()) return Mono.empty();
         return CommandUtils.getMessageChannel(event).createEmbed(spec -> {
             SharedDbProvider provider = context.getSharedDbProvider();
             if (provider == null) {

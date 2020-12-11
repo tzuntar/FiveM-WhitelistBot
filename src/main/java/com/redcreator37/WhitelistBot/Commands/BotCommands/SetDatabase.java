@@ -20,14 +20,14 @@ import java.util.Objects;
  */
 public class SetDatabase extends BotCommand {
 
-    public SetDatabase(String requiredRole) {
+    public SetDatabase() {
         super("setdatabase", "Modifies the database connection data",
                 new HashMap<String, Boolean>() {{
                     put("server", true);
                     put("database", true);
                     put("username", true);
                     put("password", false);
-                }}, requiredRole);
+                }});
     }
 
     /**
@@ -45,7 +45,7 @@ public class SetDatabase extends BotCommand {
     @SuppressWarnings({"BlockingMethodInNonBlockingContext", "OptionalGetWithoutIsPresent"})
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
-        if (!this.checkValidity(args, event).block()) return Mono.empty();
+        if (!this.checkValidity(args, event, context).block()) return Mono.empty();
         String password = args.size() < 4 ? "" : args.get(4);   // allow empty passwords
         SharedDbProvider provider = new SharedDbProvider(context.getSnowflake(),
                 args.get(1), args.get(3), password, args.get(2));

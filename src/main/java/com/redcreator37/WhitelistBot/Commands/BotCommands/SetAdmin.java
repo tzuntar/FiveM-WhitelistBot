@@ -20,11 +20,11 @@ import java.util.Objects;
  */
 public class SetAdmin extends BotCommand {
 
-    public SetAdmin(String requiredRole) {
+    public SetAdmin() {
         super("setadmin", Localizations.lc("sets-admin-role"),
                 new HashMap<String, Boolean>() {{
                     put("playerName", false);
-                }}, requiredRole);
+                }});
     }
 
     /**
@@ -42,7 +42,7 @@ public class SetAdmin extends BotCommand {
     @SuppressWarnings({"BlockingMethodInNonBlockingContext", "OptionalGetWithoutIsPresent"})
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
-        if (!this.checkValidity(args, event).block()) return Mono.empty();
+        if (!this.checkValidity(args, event, context).block()) return Mono.empty();
         // get the entered role or the highest role of the invoking member
         String adminRole = args.size() > 1 ? args.get(1) : Objects.requireNonNull(event
                 .getMember().get().getHighestRole().block()).getName();
