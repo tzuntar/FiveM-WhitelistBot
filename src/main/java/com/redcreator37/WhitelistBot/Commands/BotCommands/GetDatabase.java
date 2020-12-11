@@ -60,5 +60,4 @@ public class GetDatabase extends BotCommand {
             spec.setTimestamp(Instant.now());
         }).then();
     }
-
 }

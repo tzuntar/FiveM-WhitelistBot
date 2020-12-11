@@ -98,15 +98,15 @@ public abstract class BotCommand {
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
     public Mono<Boolean> checkValidity(List<String> enteredArgs, MessageCreateEvent event) {
         long countReq = arguments.values().stream().filter(req -> req).count();
-        if (checkAllowed(event) || enteredArgs.size() >= countReq) return Mono.just(true);
+        if (checkAllowed(event) && enteredArgs.size() >= countReq) return Mono.just(true);
         CommandUtils.getMessageChannel(event).createEmbed(spec -> {
             spec.setTitle(lc("syntax-error"));
             spec.setColor(Color.RED);
-            StringBuilder args = new StringBuilder(100).append("`");
+            StringBuilder args = new StringBuilder(100);
             arguments.forEach((argName, req) ->
-                    args.append(MessageFormat.format(req ? "**<{0}>** " : "*[{0}]* ", argName)));
+                    args.append(MessageFormat.format(req ? "<{0}> " : "*[{0}]* ", argName)));
             spec.addField(MessageFormat.format(lc("usage-of"), name),
-                    args.append("`").toString(), false);
+                    args.toString(), false);
             spec.setDescription(description);
             CommandUtils.setSelfAuthor(event.getGuild(), spec);
             spec.setTimestamp(Instant.now());
