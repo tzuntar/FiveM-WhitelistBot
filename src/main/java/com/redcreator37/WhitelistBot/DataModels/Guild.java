@@ -166,6 +166,10 @@ public class Guild {
         this.adminRole = adminRole;
     }
 
+    public void setSharedDbProvider(SharedDbProvider sharedDbProvider) {
+        this.sharedDbProvider = sharedDbProvider;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

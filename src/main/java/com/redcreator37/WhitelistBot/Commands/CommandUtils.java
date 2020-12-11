@@ -1,6 +1,7 @@
 package com.redcreator37.WhitelistBot.Commands;
 
 import com.redcreator37.WhitelistBot.DiscordBot;
+import com.redcreator37.WhitelistBot.Localizations;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
@@ -11,6 +12,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
 
+import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.regex.Pattern;
@@ -112,6 +114,38 @@ public class CommandUtils {
             spec.setTimestamp(Instant.now());
         }).block();
         return true;
+    }
+
+    /**
+     * Attempts to connect to the database, specified in this
+     * {@link com.redcreator37.WhitelistBot.DataModels.Guild} and embed
+     * the status into the {@link MessageChannel}
+     *
+     * @param channel the {@link MessageChannel} to embed the data into
+     * @param guild   the {@link Guild} to embed the status into
+     */
+    public static void attemptConnectDb(MessageChannel channel, Guild guild) {
+        try {
+            DiscordBot.guilds.get(guild.getId()).connectSharedDb();
+            channel.createEmbed(spec -> {
+                spec.setTitle(Localizations.lc("connected-to-db"));
+                spec.setColor(Color.GREEN);
+                spec.addField(Localizations.lc("db-connect-established"),
+                        Localizations.lc("you-can-now-perform-db-actions"), false);
+                setSelfAuthor(Mono.just(guild), spec);
+                spec.setTimestamp(Instant.now());
+            }).block();
+        } catch (SQLException e) {
+            channel.createEmbed(spec -> {
+                spec.setTitle(Localizations.lc("db-connect-failed"));
+                spec.setColor(Color.RED);
+                spec.addField(Localizations.lc("db-connect-could-not-be-established"),
+                        e.getMessage(), false);
+                spec.setDescription(Localizations.lc("check-connect-data"));
+                setSelfAuthor(Mono.just(guild), spec);
+                spec.setTimestamp(Instant.now());
+            }).block();
+        }
     }
 
 }

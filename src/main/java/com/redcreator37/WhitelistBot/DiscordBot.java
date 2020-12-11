@@ -4,6 +4,7 @@ import com.redcreator37.WhitelistBot.Commands.BotCommands.EmbedAdminData;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.GetDatabase;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.ListWhitelisted;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.SetAdmin;
+import com.redcreator37.WhitelistBot.Commands.BotCommands.SetDatabase;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.UnlistPlayer;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.WhitelistPlayer;
 import com.redcreator37.WhitelistBot.Commands.CommandUtils;
@@ -63,7 +64,7 @@ public class DiscordBot {
     /**
      * A {@link HashMap} of all registered guilds
      */
-    static HashMap<Snowflake, Guild> guilds = new HashMap<>();
+    public static HashMap<Snowflake, Guild> guilds = new HashMap<>();
 
     /**
      * The currently used local database support object
@@ -99,6 +100,11 @@ public class DiscordBot {
         commands.put("getdatabase", e -> Mono.just(guilds.get(e.getGuildId().get()))
                 .flatMap(guild -> new GetDatabase(guild.getAdminRole())
                         .execute(null, guild, e).then()));
+        commands.put("setdatabase", e -> Mono.justOrEmpty(e.getMessage().getContent())
+                .map(cnt -> Arrays.asList(cnt.split(" ")))
+                .doOnNext(cmd -> Mono.justOrEmpty(guilds.get(e.getGuildId().get()))
+                        .flatMap(guild -> new SetDatabase(guild.getAdminRole())
+                                .execute(cmd, guild, e)).block()).then());
     }
 
     /**
