@@ -65,6 +65,20 @@ public class GuildsDb {
     }
 
     /**
+     * Updates the admin role property for this {@link Guild}
+     *
+     * @param guild the {@link Guild} with the updated property
+     * @throws SQLException on errors
+     */
+    public void updateAdminRole(Guild guild) throws SQLException {
+        PreparedStatement st = con.prepareStatement("UPDATE guilds"
+                + " SET admin_role = ? WHERE snowflake = ?");
+        st.closeOnCompletion();
+        st.setString(1, guild.getAdminRole());
+        st.setString(2, guild.getSnowflake().asString());
+    }
+
+    /**
      * Removes this guild from the database
      *
      * @param guild the guild to remove
