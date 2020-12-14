@@ -42,7 +42,7 @@ public class SetDatabase extends BotCommand {
      *                when the message was sent
      * @return an empty {@link Mono} object
      */
-    @SuppressWarnings({"BlockingMethodInNonBlockingContext", "OptionalGetWithoutIsPresent"})
+    @SuppressWarnings("BlockingMethodInNonBlockingContext")
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
         if (!this.checkValidity(args, event, context).block()) return Mono.empty();

@@ -148,4 +148,28 @@ public class CommandUtils {
         }
     }
 
+    /**
+     * Checks whether there's no database associated with this
+     * {@link com.redcreator37.WhitelistBot.DataModels.Guild} and embeds
+     * an error message in this case
+     *
+     * @param event the {@link MessageCreateEvent} which occurred when
+     *              the message was sent
+     * @param guild the {@link Guild} context to check
+     * @return <code>true</code> if there's <strong>no</strong> database
+     * data associated, <code>false</code> otherwise
+     */
+    public static boolean checkDbNotPresent(MessageCreateEvent event, com.redcreator37.WhitelistBot.DataModels.Guild guild) {
+        if (guild.getSharedDbProvider() != null) return false;
+        getMessageChannel(event).createEmbed(spec -> {
+            spec.setTitle(Localizations.lc("no-db-yet"));
+            spec.setColor(Color.RED);
+            spec.addField(Localizations.lc("no-db-connected"), MessageFormat
+                    .format(Localizations.lc("use-to-connect-db"), DiscordBot.cmdPrefix), false);
+            setSelfAuthor(event.getGuild(), spec);
+            spec.setTimestamp(Instant.now());
+        }).block();
+        return true;
+    }
+
 }
