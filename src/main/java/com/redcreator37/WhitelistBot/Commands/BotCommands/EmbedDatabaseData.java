@@ -39,22 +39,16 @@ public class EmbedDatabaseData extends BotCommand {
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
         if (!this.checkValidity(args, event, context).block()) return Mono.empty();
+        if (CommandUtils.checkDbNotPresent(event, context)) return Mono.empty();
         return CommandUtils.getMessageChannel(event).createEmbed(spec -> {
             SharedDbProvider provider = context.getSharedDbProvider();
-            if (provider == null) {
-                spec.setTitle(Localizations.lc("no-db-yet"));
-                spec.setColor(Color.RED);
-                spec.addField(Localizations.lc("no-db-connected"), MessageFormat
-                        .format(Localizations.lc("use-to-connect-db"), DiscordBot.cmdPrefix), false);
-            } else {
-                spec.setTitle(Localizations.lc("db-connect-data"));
-                spec.setColor(Color.GREEN);
-                spec.addField(Localizations.lc("server"), provider.getDbServer(), true);
-                spec.addField(Localizations.lc("db-name"), provider.getDbName(), true);
-                spec.addField(Localizations.lc("username"), provider.getUsername(), true);
-                spec.setDescription(MessageFormat.format(Localizations.lc("to-change-db-run"),
-                        DiscordBot.cmdPrefix));
-            }
+            spec.setTitle(Localizations.lc("db-connect-data"));
+            spec.setColor(Color.GREEN);
+            spec.addField(Localizations.lc("server"), provider.getDbServer(), true);
+            spec.addField(Localizations.lc("db-name"), provider.getDbName(), true);
+            spec.addField(Localizations.lc("username"), provider.getUsername(), true);
+            spec.setDescription(MessageFormat.format(Localizations.lc("to-change-db-run"),
+                    DiscordBot.cmdPrefix));
             CommandUtils.setSelfAuthor(event.getGuild(), spec);
             spec.setTimestamp(Instant.now());
         }).then();

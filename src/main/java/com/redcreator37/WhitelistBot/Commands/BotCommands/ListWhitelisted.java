@@ -44,6 +44,7 @@ public class ListWhitelisted extends BotCommand {
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
         if (!this.checkValidity(args, event, context).block()) return Mono.empty();
+        if (CommandUtils.checkDbNotPresent(event, context)) return Mono.empty();
         MessageChannel channel = CommandUtils.getMessageChannel(event);
         Stack<WhitelistedPlayer> players = context.getWhitelisted().stream()
                 .collect(Collectors.toCollection(Stack::new));

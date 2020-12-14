@@ -45,6 +45,7 @@ public class WhitelistPlayer extends BotCommand {
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
         if (!this.checkValidity(args, event, context).block()) return Mono.empty();
+        if (CommandUtils.checkDbNotPresent(event, context)) return Mono.empty();
         MessageChannel channel = CommandUtils.getMessageChannel(event);
         return channel.createEmbed(spec -> event.getGuild().subscribe(guild -> {
             if (CommandUtils.invalidPlayerIdEmbed(args.get(1), channel)) return;
