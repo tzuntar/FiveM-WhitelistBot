@@ -69,8 +69,9 @@ public class ListWhitelisted extends BotCommand {
         List<String> fields = new ArrayList<>();
         for (int i = 0; i < players.size(); i++) {
             StringBuilder b = new StringBuilder(1024);
-            for (int j = 0; j < namesPerField && i < players.size(); j++) {
-                b.append(players.pop()).append("\n");
+            for (int j = 0; j < namesPerField; j++) {
+                if (players.isEmpty()) break;
+                b.append(players.pop().getIdentifier()).append("\n");
                 i++;
             }
             fields.add(b.toString().trim());
@@ -95,11 +96,11 @@ public class ListWhitelisted extends BotCommand {
                                     int size, MessageCreateEvent event) {
         return channel.createEmbed(spec -> {
             spec.setTitle(MessageFormat.format(lc("whitelisted-players-format"),
-                    currentMsg + 1, size / 25));
+                    currentMsg + 1, ((size / 25) + 1)));
             spec.setColor(Color.YELLOW);
             for (int i = 0; i < fields.size(); i++)
                 for (int j = 0; j < 3 && i < fields.size(); j++) {
-                    spec.addField("`[" + j + 1 + "-3]`", fields.get(j), j != 2);
+                    spec.addField("`[" + (j + 1) + "-3]`", fields.get(j), j != 2);
                     i++;
                 }
             CommandUtils.setSelfAuthor(event.getGuild(), spec);
