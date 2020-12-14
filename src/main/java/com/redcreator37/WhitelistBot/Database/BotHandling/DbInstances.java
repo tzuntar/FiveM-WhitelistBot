@@ -42,7 +42,7 @@ public class DbInstances {
         return instances;
     }
 
-    public static SharedDbProvider getByGuild(Snowflake guildId, Connection con) throws SQLException {
+    public SharedDbProvider getByGuild(Snowflake guildId) throws SQLException {
         PreparedStatement st = con.prepareStatement("select * from db_instances"
                 + " where guild_id = ?");
         st.closeOnCompletion();

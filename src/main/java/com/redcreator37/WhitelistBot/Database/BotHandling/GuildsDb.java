@@ -41,7 +41,7 @@ public class GuildsDb {
             Guild guild = new Guild(set.getInt("id"), s,
                     Instant.parse(set.getString("joined")),
                     set.getString("admin_role"),
-                    DbInstances.getByGuild(s, con));
+                    new DbInstances(con).getByGuild(s));
             guilds.put(s, guild);
         }
         set.close();
