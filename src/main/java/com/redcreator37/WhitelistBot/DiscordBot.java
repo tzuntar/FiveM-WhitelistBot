@@ -1,5 +1,6 @@
 package com.redcreator37.WhitelistBot;
 
+import com.redcreator37.WhitelistBot.BackgroundTasks.DataAutoSave;
 import com.redcreator37.WhitelistBot.Commands.BotCommand;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.EmbedAdminData;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.EmbedDatabaseData;
@@ -10,6 +11,7 @@ import com.redcreator37.WhitelistBot.Commands.BotCommands.UnlistPlayer;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.WhitelistPlayer;
 import com.redcreator37.WhitelistBot.Commands.CommandUtils;
 import com.redcreator37.WhitelistBot.DataModels.Guild;
+import com.redcreator37.WhitelistBot.Database.BotHandling.DbInstances;
 import com.redcreator37.WhitelistBot.Database.BotHandling.GuildsDb;
 import com.redcreator37.WhitelistBot.Database.BotHandling.LocalDb;
 import discord4j.common.util.Snowflake;
@@ -30,6 +32,8 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static com.redcreator37.WhitelistBot.Localizations.lc;
 
@@ -71,6 +75,11 @@ public class DiscordBot {
      * The currently used local database support object
      */
     private static GuildsDb guildsDb = null;
+
+    /**
+     * The currently used external database support object
+     */
+    private static DbInstances instancesDb = null;
 
     /**
      * Registers this {@link C command} into the global {@link MessageCreateEvent}
@@ -172,10 +181,11 @@ public class DiscordBot {
      * Sets up the local database connection
      */
     private static void setUpDatabase() {
-        boolean success = true, isNew = !new File("data.db").exists();
+        boolean success = true, isNew = !new File("bot.db").exists();
         try {
-            localDb = LocalDb.connect("data.db");
+            localDb = LocalDb.connect("bot.db");
             guildsDb = new GuildsDb(localDb);
+            instancesDb = new DbInstances(localDb);
         } catch (SQLException e) {
             System.err.println(MessageFormat.format(lc("error-format"), e.getMessage()));
         }
@@ -207,6 +217,14 @@ public class DiscordBot {
     }
 
     /**
+     * Sets up multi-threaded background tasks
+     */
+    private static void setUpBackgroundTasks() {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
+                new DataAutoSave(instancesDb, guildsDb), 0, 15, TimeUnit.MINUTES);
+    }
+
+    /**
      * Starts up the bot, loads the local database and connects to the
      * Discord's API
      */
@@ -225,9 +243,11 @@ public class DiscordBot {
             System.exit(1);
         }
         setUpEventDispatcher();
+        setUpBackgroundTasks();
         // close the database connection on shutdown
         client.onDisconnect().filter(unused -> {
             try {
+                new DataAutoSave(instancesDb, guildsDb).run();   // trigger manual data save
                 localDb.close();
             } catch (SQLException e) {
                 System.err.println(MessageFormat.format(lc("warn-db-close-failed"),

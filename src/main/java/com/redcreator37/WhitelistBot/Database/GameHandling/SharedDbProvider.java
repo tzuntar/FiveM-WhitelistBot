@@ -6,6 +6,7 @@ import discord4j.common.util.Snowflake;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a MySQL database connection provider
@@ -21,6 +22,8 @@ public class SharedDbProvider {
     private final String password;
 
     private final String dbName;
+
+    private Connection connection;
 
     /**
      * Constructs a new shared database provider
@@ -52,9 +55,9 @@ public class SharedDbProvider {
         dataSource.setPassword(password);
         dataSource.setServerName(dbServer);
         dataSource.setDatabaseName(dbName);
-        Connection con = dataSource.getConnection();
-        con.setAutoCommit(true);
-        return con;
+        connection = dataSource.getConnection();
+        connection.setAutoCommit(true);
+        return connection;
     }
 
     public Snowflake getGuildId() {
@@ -75,6 +78,10 @@ public class SharedDbProvider {
 
     public String getDbName() {
         return dbName;
+    }
+
+    public Optional<Connection> getConnection() {
+        return Optional.ofNullable(connection);
     }
 
     @Override
