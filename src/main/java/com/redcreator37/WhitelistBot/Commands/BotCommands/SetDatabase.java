@@ -46,11 +46,11 @@ public class SetDatabase extends BotCommand {
     @Override
     public Mono<Void> execute(List<String> args, Guild context, MessageCreateEvent event) {
         if (!this.checkValidity(args, event, context).block()) return Mono.empty();
-        String password = args.size() < 4 ? "" : args.get(4);   // allow empty passwords
+        String password = args.size() < 5 ? "" : args.get(4);   // allow empty passwords
         SharedDbProvider provider = new SharedDbProvider(context.getSnowflake(),
                 args.get(1), args.get(3), password, args.get(2));
         context.setSharedDbProvider(provider);
-        return CommandUtils.getMessageChannel(event).createEmbed(spec -> {
+        CommandUtils.getMessageChannel(event).createEmbed(spec -> {
             spec.setTitle(Localizations.lc("db-data-changed"));
             spec.setColor(Color.CYAN);
             spec.addField(Localizations.lc("server"), provider.getDbServer(), true);
@@ -59,8 +59,10 @@ public class SetDatabase extends BotCommand {
             spec.setDescription(Localizations.lc("connecting-to-db-shortly"));
             CommandUtils.setSelfAuthor(event.getGuild(), spec);
             spec.setTimestamp(Instant.now());
-            CommandUtils.attemptConnectDb(Objects.requireNonNull(event.getMessage()
-                    .getChannel().block()), Objects.requireNonNull(event.getGuild().block()));
-        }).then();
+        }).block();
+        CommandUtils.attemptConnectDb(Objects.requireNonNull(event.getMessage()
+                .getChannel().block()), Objects.requireNonNull(event.getGuild().block()));
+        // delete the message containing the credentials
+        return event.getMessage().delete().then();
     }
 }
