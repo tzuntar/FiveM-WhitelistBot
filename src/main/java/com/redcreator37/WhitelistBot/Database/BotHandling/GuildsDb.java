@@ -36,12 +36,13 @@ public class GuildsDb {
     public HashMap<Snowflake, Guild> getGuilds() throws SQLException {
         HashMap<Snowflake, Guild> guilds = new HashMap<>();
         ResultSet set = con.createStatement().executeQuery("select * from guilds");
+        DbInstances dbInstances = new DbInstances(con);
         while (set.next()) {
             Snowflake s = Snowflake.of(set.getString("snowflake"));
             Guild guild = new Guild(set.getInt("id"), s,
                     Instant.parse(set.getString("joined")),
                     set.getString("admin_role"),
-                    new DbInstances(con).getByGuild(s));
+                    dbInstances.getByGuild(s));
             guilds.put(s, guild);
         }
         set.close();
