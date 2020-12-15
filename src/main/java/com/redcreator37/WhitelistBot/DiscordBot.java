@@ -203,6 +203,15 @@ public class DiscordBot {
 
         try {
             guilds = guildsDb.getGuilds();
+            guilds.values().forEach(guild -> {
+                try {
+                    if (guild.getSharedDbProvider() != null)
+                        guild.connectSharedDb();
+                } catch (SQLException e) {
+                    System.err.println(MessageFormat.format(lc("connecting-failed-for-guild"),
+                            guild.getSnowflake().toString(), e.getMessage()));
+                }
+            });
             System.out.println(lc("db-loaded-success"));
         } catch (SQLException e) {
             System.err.println(MessageFormat.format(lc("error-reading-db"),
