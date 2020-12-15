@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 
 public class DbInstances {
 
@@ -24,22 +23,6 @@ public class DbInstances {
      */
     public DbInstances(Connection con) {
         this.con = con;
-    }
-
-    public HashMap<Snowflake, SharedDbProvider> getInstances() throws SQLException {
-        HashMap<Snowflake, SharedDbProvider> instances = new HashMap<>();
-        ResultSet set = con.createStatement().executeQuery("select * from db_instances");
-        while (set.next()) {
-            Snowflake s = Snowflake.of(set.getString("guild_id"));
-            SharedDbProvider instance = new SharedDbProvider(s,
-                    set.getString("server"),
-                    set.getString("username"),
-                    set.getString("password"),
-                    set.getString("database"));
-            instances.put(s, instance);
-        }
-        set.close();
-        return instances;
     }
 
     public SharedDbProvider getByGuild(Snowflake guildId) throws SQLException {
