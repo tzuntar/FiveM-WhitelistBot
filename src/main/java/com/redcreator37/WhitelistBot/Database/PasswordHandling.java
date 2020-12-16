@@ -44,13 +44,10 @@ public class PasswordHandling {
      * @param salt     the salt to use when hashing
      * @return the hashed password
      */
-    private static Optional<String> hashPassword(String password, String salt) {
+    public static Optional<String> hashPassword(String password, String salt) {
         char[] chars = password.toCharArray();
-        byte[] bytes = salt.getBytes();
-
-        PBEKeySpec spec = new PBEKeySpec(chars, bytes, ITERATIONS, KEY_LENGTH);
+        PBEKeySpec spec = new PBEKeySpec(chars, salt.getBytes(), ITERATIONS, KEY_LENGTH);
         Arrays.fill(chars, Character.MIN_VALUE);
-
         try {
             SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(ALGORITHM);
             byte[] securePassword = secretKeyFactory.generateSecret(spec).getEncoded();

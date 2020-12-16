@@ -190,16 +190,15 @@ public class DiscordBot {
             System.err.println(MessageFormat.format(lc("error-format"), e.getMessage()));
         }
 
-        if (isNew) // create a new database
-            try {
-                new LocalDb().createDatabaseTables(localDb, DiscordBot.class
-                        .getClassLoader().getResourceAsStream("GenerateDb.sql"));
-                System.out.println(lc("created-empty-db"));
-            } catch (SQLException | IOException e) {
-                System.err.println(MessageFormat.format(lc("error-creating-db"),
-                        e.getMessage()));
-                success = false;
-            }
+        if (isNew) try {
+            new LocalDb().createDatabaseTables(localDb, DiscordBot.class
+                    .getClassLoader().getResourceAsStream("GenerateDb.sql"));
+            System.out.println(lc("created-empty-db"));
+        } catch (SQLException | IOException e) {
+            System.err.println(MessageFormat.format(lc("error-creating-db"),
+                    e.getMessage()));
+            success = false;
+        }
 
         try {
             guilds = guildsDb.getGuilds();
