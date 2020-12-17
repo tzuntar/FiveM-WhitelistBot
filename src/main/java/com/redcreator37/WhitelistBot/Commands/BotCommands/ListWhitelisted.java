@@ -100,7 +100,8 @@ public class ListWhitelisted extends BotCommand {
             spec.setColor(Color.YELLOW);
             for (int i = 0; i < fields.size(); i++)
                 for (int j = 0; j < 3 && i < fields.size(); j++) {
-                    spec.addField("`[" + (j + 1) + "-3]`", fields.get(j), j != 2);
+                    spec.addField(fields.size() > 0 ? "`[" + (j + 1) + "-3]`"
+                            : "", fields.get(j), j != 2);
                     i++;
                 }
             CommandUtils.setSelfAuthor(event.getGuild(), spec);
