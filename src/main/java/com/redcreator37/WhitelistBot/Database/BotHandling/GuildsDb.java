@@ -39,8 +39,7 @@ public class GuildsDb {
         DbInstances dbInstances = new DbInstances(con);
         while (set.next()) {
             Snowflake s = Snowflake.of(set.getString("snowflake"));
-            Guild guild = new Guild(set.getInt("id"), s,
-                    Instant.parse(set.getString("joined")),
+            Guild guild = new Guild(s, Instant.parse(set.getString("joined")),
                     set.getString("admin_role"),
                     dbInstances.getByGuild(s));
             guilds.put(s, guild);

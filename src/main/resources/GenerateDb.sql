@@ -1,9 +1,9 @@
 create table guilds
 (
-    id         integer not null
-        primary key autoincrement,
-    snowflake  text    not null,
-    joined     date    not null,
+    snowflake  text not null
+        constraint guilds_pk
+        primary key,
+    joined     date not null,
     admin_role text default 'admins'
 );
 --
@@ -19,12 +19,12 @@ create unique index caches_guild_id_uindex
 --
 create table db_instances
 (
-    guild_id text not null
+    guild_id text            not null
         references guilds (snowflake),
-    server   text not null,
+    server   text            not null,
     username text default '' not null,
     password text default '' not null,
-    database text not null
+    database text            not null
 );
 --
 create unique index db_instances_guild_id_uindex

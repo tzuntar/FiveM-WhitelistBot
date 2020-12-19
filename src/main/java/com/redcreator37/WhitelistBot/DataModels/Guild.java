@@ -20,11 +20,6 @@ import java.util.Optional;
 public class Guild {
 
     /**
-     * This guild's database id
-     */
-    private final int id;
-
-    /**
      * This guild's unique snowflake
      */
     private final Snowflake snowflake;
@@ -61,15 +56,13 @@ public class Guild {
      * This constructor is meant to be used <i>exclusively</i> when
      * registering new guilds, as it doesn't require additional data to
      * be present yet. When possible, use the full constructor
-     * {@link Guild#Guild(int, Snowflake, Instant, String, SharedDbProvider)}.
+     * {@link Guild#Guild(Snowflake, Instant, String, SharedDbProvider)}.
      *
-     * @param id        the guild's database id
      * @param snowflake the guild's snowflake
      * @param joined    the guild's join date in an ISO 8601-compliant
      *                  format
      */
-    public Guild(int id, Snowflake snowflake, Instant joined) {
-        this.id = id;
+    public Guild(Snowflake snowflake, Instant joined) {
         this.snowflake = snowflake;
         this.joined = joined;
     }
@@ -81,15 +74,13 @@ public class Guild {
      * whitelisted players) are manually lazily-initialized using the
      * {@link Guild#connectSharedDb()} method.
      *
-     * @param id        the guild's database id
      * @param snowflake the guild's snowflake
      * @param joined    the guild's join date
      * @param adminRole the role required to edit the data for this
      *                  guild
      * @param db        the database data provider
      */
-    public Guild(int id, Snowflake snowflake, Instant joined, String adminRole, SharedDbProvider db) {
-        this.id = id;
+    public Guild(Snowflake snowflake, Instant joined, String adminRole, SharedDbProvider db) {
         this.snowflake = snowflake;
         this.joined = joined;
         this.adminRole = adminRole;
@@ -175,7 +166,7 @@ public class Guild {
         if (this == o) return true;
         if (!(o instanceof Guild)) return false;
         Guild guild = (Guild) o;
-        return id == guild.id && snowflake.equals(guild.snowflake)
+        return snowflake.equals(guild.snowflake)
                 && joined.equals(guild.joined) && Objects.equals(adminRole, guild.adminRole)
                 && Objects.equals(sharedDbProvider, guild.sharedDbProvider)
                 && Objects.equals(fiveMDb, guild.fiveMDb)
@@ -184,7 +175,7 @@ public class Guild {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, snowflake, joined, adminRole, sharedDbProvider, fiveMDb, whitelisted);
+        return Objects.hash(snowflake, joined, adminRole, sharedDbProvider, fiveMDb, whitelisted);
     }
 
 }
