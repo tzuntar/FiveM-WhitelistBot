@@ -169,8 +169,14 @@ public class DiscordBot {
         client.getEventDispatcher().on(GuildCreateEvent.class)
                 .flatMap(e -> Mono.just(e.getGuild())
                         .flatMap(guild -> Mono.just(new Guild(guild.getId(), Instant.now())))
-                        .flatMap(guild -> Mono.just(addGuild(guild, e))))
+                        .flatMap(guild -> {
+                            if (guilds.get(guild.getSnowflake()) != null)
+                                return Mono.empty();
+                            return Mono.just(addGuild(guild, e));
+                        }))
                 .subscribe(System.out::println);
+        // fixme: the following should only delete guilds
+        //  when the bot is kicked from the server
         client.getEventDispatcher().on(GuildDeleteEvent.class)
                 .flatMap(e -> Mono.justOrEmpty(e.getGuild())
                         .flatMap(guild -> Mono.just(guilds.get(e.getGuildId())))
