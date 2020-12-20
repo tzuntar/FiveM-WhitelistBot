@@ -18,7 +18,6 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.guild.GuildCreateEvent;
-import discord4j.core.event.domain.guild.GuildDeleteEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -175,12 +174,6 @@ public class DiscordBot {
                             return Mono.just(addGuild(guild, e));
                         }))
                 .subscribe(System.out::println);
-        // fixme: the following should only delete guilds
-        //  when the bot is kicked from the server
-        client.getEventDispatcher().on(GuildDeleteEvent.class)
-                .flatMap(e -> Mono.justOrEmpty(e.getGuild())
-                        .flatMap(guild -> Mono.just(guilds.get(e.getGuildId())))
-                        .flatMap(DiscordBot::removeGuild)).subscribe(System.out::println);
     }
 
     /**
