@@ -1,4 +1,4 @@
-package com.redcreator37.WhitelistBot;
+package com.redcreator37.WhitelistBot.Commands;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import reactor.core.publisher.Mono;

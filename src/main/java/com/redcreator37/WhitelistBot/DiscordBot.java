@@ -4,11 +4,13 @@ import com.redcreator37.WhitelistBot.BackgroundTasks.DataAutoSave;
 import com.redcreator37.WhitelistBot.Commands.BotCommand;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.EmbedAdminData;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.EmbedDatabaseData;
+import com.redcreator37.WhitelistBot.Commands.BotCommands.LeaveGuild;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.ListWhitelisted;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.SetAdmin;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.SetDatabase;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.UnlistPlayer;
 import com.redcreator37.WhitelistBot.Commands.BotCommands.WhitelistPlayer;
+import com.redcreator37.WhitelistBot.Commands.Command;
 import com.redcreator37.WhitelistBot.Commands.CommandUtils;
 import com.redcreator37.WhitelistBot.DataModels.Guild;
 import com.redcreator37.WhitelistBot.Database.BotHandling.DbInstances;
@@ -113,6 +115,7 @@ public class DiscordBot {
         registerCommand("setadmin", true, new SetAdmin());
         registerCommand("getdatabase", false, new EmbedDatabaseData());
         registerCommand("setdatabase", true, new SetDatabase());
+        registerCommand("kickbot", false, new LeaveGuild());
     }
 
     /**
@@ -143,15 +146,17 @@ public class DiscordBot {
      * @param guild the {@link Guild} to remove
      * @return the status message
      */
-    private static Mono<String> removeGuild(Guild guild) {
+    public static Mono<Boolean> removeGuild(Guild guild) {
         try {
             guildsDb.removeGuild(guild);
             guilds.remove(guild.getSnowflake());
-            return Mono.just(MessageFormat.format(lc("unregistered-guild"),
+            System.out.println(MessageFormat.format(lc("unregistered-guild"),
                     guild.getSnowflake().asString()));
+            return Mono.just(true);
         } catch (SQLException ex) {
-            return Mono.just(MessageFormat.format(lc("warn-guild-remove-failed"),
+            System.err.println(MessageFormat.format(lc("warn-guild-remove-failed"),
                     ex.getMessage()));
+            return Mono.just(false);
         }
     }
 
