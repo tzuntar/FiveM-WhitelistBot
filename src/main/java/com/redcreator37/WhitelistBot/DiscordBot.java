@@ -49,7 +49,7 @@ public class DiscordBot {
     /**
      * The prefix to look for when parsing messages into commands
      */
-    public static final char cmdPrefix = '%';
+    public static final char cmdPrefix = '-';
 
     /**
      * The currently used {@link GatewayDiscordClient} object when
