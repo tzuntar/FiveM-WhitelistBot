@@ -88,7 +88,7 @@ public class DiscordBot {
      *
      * @param cmd         the name of the command as well as the action
      *                    word by which the command is executed
-     * @param parseParams set to <code>true</code> if this command accepts
+     * @param parseParams set to {@code true} if this command accepts
      *                    parameters
      * @param command     the {@link C command object}, which gets executed
      * @param <C>         the command's implementation class

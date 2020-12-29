@@ -28,7 +28,7 @@ public class CommandUtils {
      * Checks whether this SteamID is not in the correct format
      *
      * @param id the SteamID to check
-     * @return <code>true</code> if the ID is invalid, <code>false</code>
+     * @return {@code true} if the ID is invalid, {@code false}
      * otherwise
      */
     public static boolean checkIdInvalid(String id) {
@@ -40,7 +40,7 @@ public class CommandUtils {
      *
      * @param member the {@link Member} which should have the role
      * @param name   the name of the role to look for
-     * @return the matching {@link Role} or <code>null</code> if the
+     * @return the matching {@link Role} or {@code null} if the
      * member lacks it
      */
     static Role findRole(Member member, String name) {
@@ -102,7 +102,7 @@ public class CommandUtils {
      * @param id      the ID to check
      * @param channel the {@link MessageChannel} where the message about
      *                an invalid ID will be embedded
-     * @return <code>true</code> if the ID is invalid, <code>false</code>
+     * @return {@code true} if the ID is invalid, {@code false}
      * otherwise
      */
     public static boolean invalidPlayerIdEmbed(String id, MessageChannel channel) {
@@ -156,8 +156,8 @@ public class CommandUtils {
      * @param event the {@link MessageCreateEvent} which occurred when
      *              the message was sent
      * @param guild the {@link Guild} context to check
-     * @return <code>true</code> if there's <strong>no</strong> database
-     * data associated, <code>false</code> otherwise
+     * @return {@code true} if there's <strong>no</strong> database
+     * data associated, {@code false} otherwise
      */
     public static boolean checkDbNotPresent(MessageCreateEvent event, com.redcreator37.WhitelistBot.DataModels.Guild guild) {
         if (guild.getSharedDbProvider() != null) return false;

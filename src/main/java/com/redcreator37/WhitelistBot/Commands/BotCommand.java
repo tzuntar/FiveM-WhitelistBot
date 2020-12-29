@@ -43,7 +43,7 @@ public abstract class BotCommand {
      * @param arguments   the {@link HashMap} of arguments, where the
      *                    boolean values signal whether specific
      *                    arguments are required or not. Can be
-     *                    <code>null</code> if no arguments are required.
+     *                    {@code null} if no arguments are required.
      */
     public BotCommand(String name, String description, HashMap<String, Boolean> arguments) {
         this.name = name;
@@ -58,8 +58,8 @@ public abstract class BotCommand {
      * @param event        the {@link MessageCreateEvent} which occurred when
      *                     the message was sent
      * @param requiredRole the role, required to run this command
-     * @return <code>true</code> if the user <strong>has</strong> the
-     * permission, <code>false</code> otherwise
+     * @return {@code true} if the user <strong>has</strong> the
+     * permission, {@code false} otherwise
      */
     private boolean checkAllowed(MessageCreateEvent event, String requiredRole) {
         if (!event.getMember().isPresent()) return false;
@@ -87,8 +87,8 @@ public abstract class BotCommand {
      *                    the message was sent
      * @param guild       the {@link Guild} in which the {@link MessageCreateEvent}
      *                    occurred
-     * @return If the requirements are met,  <code>false</code>, otherwise
-     * <code>false</code>.
+     * @return If the requirements are met, {@code true}, otherwise
+     * {@code false}.
      */
     @SuppressWarnings("BlockingMethodInNonBlockingContext")
     public Mono<Boolean> checkValidity(List<String> enteredArgs, MessageCreateEvent event, Guild guild) {
@@ -114,10 +114,10 @@ public abstract class BotCommand {
     /**
      * Runs the action for this command
      *
-     * @param args    the command arguments entered, can be <code>null</code>
+     * @param args    the command arguments entered, can be {@code null}
      *                if none are required
      * @param context the {@link Guild} context in which to run the
-     *                command. Can be <code>null</code> if no guild is
+     *                command. Can be {@code null} if no guild is
      *                tied to the command's working.
      * @param event   the {@link MessageCreateEvent} which occurred
      *                when the message was sent

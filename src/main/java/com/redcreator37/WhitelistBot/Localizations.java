@@ -21,7 +21,7 @@ public class Localizations {
      * strings {@link ResourceBundle}
      *
      * @param key the localization key
-     * @return the message (or <code>null</code> if the key isn't valid)
+     * @return the message (or {@code null} if the key isn't valid)
      */
     public static String lc(String key) {
         return strings.getString(key);
@@ -33,7 +33,7 @@ public class Localizations {
      *
      * @param baseName the full name of the {@link ResourceBundle} to retrieve
      * @param langCode a code in the language_country format
-     *                 (ex. <code>en_US</code>)
+     *                 (ex. {@code en_US})
      * @return the matching {@link ResourceBundle} or an empty {@link Optional}
      * if the matching bundle-language combination wasn't found
      */

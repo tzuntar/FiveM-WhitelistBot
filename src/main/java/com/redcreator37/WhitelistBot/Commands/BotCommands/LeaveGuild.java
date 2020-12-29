@@ -26,10 +26,10 @@ public class LeaveGuild extends BotCommand {
     /**
      * Runs the action for this command
      *
-     * @param args    the command arguments entered, can be <code>null</code>
+     * @param args    the command arguments entered, can be {@code null}
      *                if none are required
      * @param context the {@link Guild} context in which to run the
-     *                command. Can be <code>null</code> if no guild is
+     *                command. Can be {@code null} if no guild is
      *                tied to the command's working.
      * @param event   the {@link MessageCreateEvent} which occurred
      *                when the message was sent
